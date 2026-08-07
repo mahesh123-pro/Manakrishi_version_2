@@ -1,0 +1,34 @@
+{
+  "name": "manakrishi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Manakrishi — India's next-generation drone agriculture platform. Precision drone spraying booking for farmers.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.3.0",
+    "firebase": "^12.3.0",
+    "framer-motion": "^12.23.12",
+    "gsap": "^3.13.0",
+    "lenis": "^1.3.11",
+    "lucide-react": "^0.544.0",
+    "next": "^15.5.21",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.13",
+    "@types/node": "^24.5.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@types/three": "^0.180.0",
+    "tailwindcss": "^4.1.13",
+    "typescript": "^5.9.2"
+  }
+}
