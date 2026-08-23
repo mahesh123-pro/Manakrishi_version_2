@@ -8,6 +8,7 @@ import { HowItWorks } from "@/components/sections/HowItWorks";
 import { DroneTech } from "@/components/sections/DroneTech";
 import { PrecisionFarming } from "@/components/sections/PrecisionFarming";
 import { Services } from "@/components/sections/Services";
+import { Machinery } from "@/components/sections/Machinery";
 import { SupportSchemes } from "@/components/sections/SupportSchemes";
 import { Benefits } from "@/components/sections/Benefits";
 import { DashboardPreview } from "@/components/sections/DashboardPreview";
@@ -31,6 +32,7 @@ export default function Home() {
       <DroneTech />
       <PrecisionFarming />
       <Services />
+      <Machinery />
       <SupportSchemes />
       <Benefits />
       <DashboardPreview />

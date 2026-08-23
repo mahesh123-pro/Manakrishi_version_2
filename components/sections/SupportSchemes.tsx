@@ -24,17 +24,17 @@ export function SupportSchemes() {
         className="mt-16 grid gap-6 lg:grid-cols-2"
       >
         {/* Insurance */}
-        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass">
+        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-2xl hover:border-[var(--border-strong)]">
           <div className="relative aspect-[16/9] overflow-hidden">
             <Image
               src="/assets/scheme-insurance.png"
               alt="Post Office Insurance Scheme"
               fill
               sizes="(max-width: 1024px) 92vw, 45vw"
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050a07] via-transparent to-transparent" />
-            <span className="absolute left-5 top-5 grid h-11 w-11 place-items-center rounded-2xl glass-strong text-gold">
+            <span className="absolute left-5 top-5 grid h-11 w-11 place-items-center rounded-2xl glass-strong text-gold shadow-md">
               <ShieldCheck className="h-5 w-5" />
             </span>
           </div>
@@ -51,17 +51,17 @@ export function SupportSchemes() {
         </motion.div>
 
         {/* Government schemes */}
-        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass">
+        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-2xl hover:border-[var(--border-strong)]">
           <div className="relative aspect-[16/9] overflow-hidden">
             <Image
               src="/assets/scheme-govt.png"
               alt="Government schemes for farmers"
               fill
               sizes="(max-width: 1024px) 92vw, 45vw"
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#050a07] via-transparent to-transparent" />
-            <span className="absolute left-5 top-5 grid h-11 w-11 place-items-center rounded-2xl glass-strong text-emerald">
+            <span className="absolute left-5 top-5 grid h-11 w-11 place-items-center rounded-2xl glass-strong text-emerald shadow-md">
               <Landmark className="h-5 w-5" />
             </span>
           </div>

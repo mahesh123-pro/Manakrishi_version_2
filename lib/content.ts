@@ -53,6 +53,7 @@ export const NAV_LINKS: { key: string; href: string }[] = [
   { key: "nav.tech", href: "#technology" },
   { key: "nav.how", href: "#how-it-works" },
   { key: "nav.services", href: "#services" },
+  { key: "nav.machinery", href: "#machinery" },
   { key: "nav.impact", href: "#impact" },
   { key: "nav.contact", href: "#contact" },
 ];
@@ -348,6 +349,75 @@ export const CROPS: Crop[] = [
   { name: { en: "Cotton", te: "పత్తి" }, image: "drone-cotton.png" },
   { name: { en: "Sugarcane", te: "చెరకు" }, image: "drone-sugarcane.png" },
   { name: { en: "Orchards", te: "తోటలు" }, image: "drone-orchard.png" },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Tractors & Heavy Machinery Services                               */
+/* ------------------------------------------------------------------ */
+
+export interface TractorItem {
+  id: string;
+  name: Localized;
+  hp: string;
+  attachment: Localized;
+  image: string;
+  description: Localized;
+  specs: { label: Localized; value: string }[];
+  badge: Localized;
+}
+
+export const TRACTORS: TractorItem[] = [
+  {
+    id: "tr-01",
+    name: { en: "55 HP 4WD Heavy Tillage Tractor", te: "55 HP 4WD భారీ దుక్కి ట్రాక్టర్" },
+    hp: "55 HP · 4WD",
+    attachment: { en: "Heavy Duty Disc Plough", te: "డిస్క్ ప్లావ్" },
+    image: "tractor-ploughing.png",
+    description: {
+      en: "Powerful Indian agricultural tractor for deep soil inversion, breaking hard soil layers, and preparing primary seedbeds.",
+      te: "లోతైన దుక్కి, గట్టి నేలను దున్నుడం మరియు ప్రాథమిక విత్తన మడి తయారీ కోసం శక్తివంతమైన ట్రాక్టర్.",
+    },
+    specs: [
+      { label: { en: "Coverage", te: "కవరేజ్" }, value: "1.5 ac/hr" },
+      { label: { en: "Engine", te: "ఇంజిన్" }, value: "3500 cc Turbo" },
+      { label: { en: "Application", te: "ఉపయోగం" }, value: "Deep Soil Tillage" },
+    ],
+    badge: { en: "High Demand", te: "అధిక డిమాండ్" },
+  },
+  {
+    id: "tr-02",
+    name: { en: "45 HP Rotavator & Soil Prep Tractor", te: "45 HP రోటవేటర్ ట్రాక్టర్" },
+    hp: "45 HP · Dual Speed PTO",
+    attachment: { en: "Multi-blade Rotavator", te: "మల్టీ బ్లేడ్ రోటవేటర్" },
+    image: "tractor-rotavator.png",
+    description: {
+      en: "Ideal for fine tilth creation, pulverising clods, and mixing crop residues for paddy and dry land fields.",
+      te: "నేలను మెత్తగా చేయుటకు, దుక్కి దున్నుటకు మరియు వరి పొలాల తయారీకి ఉత్తమమైనది.",
+    },
+    specs: [
+      { label: { en: "Coverage", te: "కవరేజ్" }, value: "2.0 ac/hr" },
+      { label: { en: "Blades", te: "బ్లేడ్లు" }, value: "42 L-Type" },
+      { label: { en: "Application", te: "ఉపయోగం" }, value: "Fine Pulverisation" },
+    ],
+    badge: { en: "Most Popular", te: "పాపులర్" },
+  },
+  {
+    id: "tr-03",
+    name: { en: "50 HP Laser Land Leveller & Cultivator", te: "50 HP లేజర్ ల్యాండ్ లెవెలర్" },
+    hp: "50 HP · Precision Hydro",
+    attachment: { en: "Laser Leveller & 9-Tyne Cultivator", te: "లేజర్ లెవెలర్ & కల్టివేటర్" },
+    image: "tractor-cultivator.png",
+    description: {
+      en: "Laser-guided precision field levelling to save 25% irrigation water and ensure uniform crop germination.",
+      te: "25% నీటి సమయాన్ని ఆదా చేసే కచ్చితమైన లేజర్ సమతలీకరణ మరియు కల్టివేటర్.",
+    },
+    specs: [
+      { label: { en: "Accuracy", te: "కచ్చితత్వం" }, value: "±2 mm" },
+      { label: { en: "Water Saved", te: "నీటి ఆదా" }, value: "Up to 25%" },
+      { label: { en: "Application", te: "ఉపయోగం" }, value: "Field Levelling" },
+    ],
+    badge: { en: "Precision Tech", te: "కచ్చితమైన టెక్నాలజీ" },
+  },
 ];
 
 /* ------------------------------------------------------------------ */

@@ -56,6 +56,8 @@ export interface BookingPayload {
   date: string;
   crop: string;
   acres: string;
+  serviceType?: string;
+  chemicalOrImplement?: string;
 }
 
 /**

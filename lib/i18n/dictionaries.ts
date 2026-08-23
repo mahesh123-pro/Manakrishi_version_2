@@ -22,6 +22,7 @@ export const dict: Record<string, Localized> = {
   "nav.tech": { en: "Technology", te: "సాంకేతికత" },
   "nav.how": { en: "How It Works", te: "ఎలా పనిచేస్తుంది" },
   "nav.services": { en: "Services", te: "సేవలు" },
+  "nav.machinery": { en: "Machinery", te: "యంత్రాలు" },
   "nav.impact": { en: "Impact", te: "ప్రభావం" },
   "nav.contact": { en: "Contact", te: "సంప్రదించండి" },
   "nav.book": { en: "Book a Drone", te: "డ్రోన్ బుక్ చేయండి" },
@@ -75,6 +76,9 @@ export const dict: Record<string, Localized> = {
 
   "services.eyebrow": { en: "Services", te: "సేవలు" },
   "services.title": { en: "One platform, every acre", te: "ఒక వేదిక, ప్రతి ఎకరం" },
+
+  "machinery.eyebrow": { en: "Tractors & Machinery", te: "ట్రాక్టర్లు & యంత్రాలు" },
+  "machinery.title": { en: "Heavy Machinery & Field Preparation", te: "భారీ యంత్రాలు & భూమి తయారీ సేవలు" },
 
   "benefits.eyebrow": { en: "Benefits", te: "ప్రయోజనాలు" },
   "benefits.title": { en: "Better for farmers. Better for the land.", te: "రైతులకు మంచిది. భూమికి మంచిది." },

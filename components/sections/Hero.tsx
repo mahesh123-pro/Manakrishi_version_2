@@ -25,34 +25,37 @@ export function Hero() {
       {/* Background media with scroll-zoom */}
       <motion.div style={{ scale, y }} className="absolute inset-0 -z-20">
         <Image
-          src="/assets/dronespraying.jpeg"
-          alt="Agricultural drone spraying a green field at sunrise"
+          src="/assets/hero-drone-farmland.png"
+          alt="Professional agricultural spraying drone flying over vibrant Indian farmland at sunrise"
           fill
           priority
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-center"
         />
       </motion.div>
 
       {/* Overlays */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#050a07]/70 via-[#050a07]/55 to-[var(--background)]" />
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_120%,rgba(74,222,128,0.18),transparent_55%)]" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#050a07]/80 via-[#050a07]/60 to-[var(--background)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_120%,rgba(74,222,128,0.22),transparent_55%)]" />
       <div className="absolute inset-0 -z-10 grid-bg opacity-40" />
       <ParticleField className="-z-10 opacity-70" color="180,240,200" density={0.7} speed={1.2} />
 
       {/* Content */}
       <motion.div
         style={{ opacity }}
-        className="relative z-10 mx-auto flex min-h-[100svh] w-[92%] max-w-5xl flex-col items-center justify-center pt-24 text-center"
+        className="relative z-10 mx-auto flex min-h-[100svh] w-[92%] max-w-5xl flex-col items-center justify-center pt-24 text-center pb-12"
       >
         <motion.div variants={stagger(0.12, 0.3)} initial="hidden" animate="show" className="flex flex-col items-center gap-6">
-          <motion.span
-            variants={fadeUp}
-            className="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald"
-          >
-            <Cpu className="h-3.5 w-3.5" />
-            {t("hero.badge")}
-          </motion.span>
+          <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full glass px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-emerald">
+              <Cpu className="h-3.5 w-3.5" />
+              {t("hero.badge")}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full glass-strong px-3 py-1.5 text-xs font-medium text-gold">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald" />
+              Professional Drone Spraying Service
+            </span>
+          </motion.div>
 
           <motion.h1
             variants={fadeUp}
@@ -67,6 +70,32 @@ export function Hero() {
             {t("hero.sub")}
           </motion.p>
 
+          {/* Agritech Visual Flow Hierarchy: Welcome -> Farm/Drone Visual -> Quick Booking -> Active Operations */}
+          <motion.div
+            variants={fadeUp}
+            className="mt-2 hidden w-full max-w-3xl items-center justify-between rounded-2xl glass-strong p-3 text-xs sm:flex"
+          >
+            <div className="flex items-center gap-2 px-3 py-1.5 font-semibold text-emerald">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-emerald/20 text-[10px]">1</span>
+              Welcome Farmer
+            </div>
+            <span className="text-muted-2">→</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 font-semibold text-foreground">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-white/10 text-[10px]">2</span>
+              Drone & Farm Visual
+            </div>
+            <span className="text-muted-2">→</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 font-semibold text-gold">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-gold/20 text-[10px]">3</span>
+              Quick Booking
+            </div>
+            <span className="text-muted-2">→</span>
+            <div className="flex items-center gap-2 px-3 py-1.5 font-semibold text-muted">
+              <span className="grid h-6 w-6 place-items-center rounded-full bg-white/10 text-[10px]">4</span>
+              Active Operations
+            </div>
+          </motion.div>
+
           <motion.div variants={fadeUp} className="mt-4 flex flex-col items-center gap-4 sm:flex-row">
             <Link
               href="/book"
@@ -76,17 +105,17 @@ export function Hero() {
               {t("hero.cta.book")}
             </Link>
             <a
-              href="#how-it-works"
+              href="#machinery"
               className="inline-flex items-center gap-2 rounded-full glass-strong px-7 py-4 text-sm font-semibold transition-colors hover:text-emerald"
+            >
+              Tractors & Machinery
+            </a>
+            <a
+              href="#how-it-works"
+              className="inline-flex items-center gap-2 rounded-full glass px-6 py-4 text-sm font-semibold text-muted transition-colors hover:text-foreground"
             >
               <Play className="h-4 w-4" />
               {t("hero.cta.demo")}
-            </a>
-            <a
-              href="#technology"
-              className="inline-flex items-center gap-2 rounded-full px-6 py-4 text-sm font-semibold text-muted transition-colors hover:text-foreground"
-            >
-              {t("hero.cta.tech")} →
             </a>
           </motion.div>
         </motion.div>
@@ -95,7 +124,7 @@ export function Hero() {
         <motion.a
           href="#impact"
           style={{ opacity }}
-          className="absolute bottom-8 flex flex-col items-center gap-2 text-xs text-muted"
+          className="mt-12 flex flex-col items-center gap-2 text-xs text-muted"
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
         >

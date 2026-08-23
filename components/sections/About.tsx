@@ -27,15 +27,15 @@ export function About() {
       <div className="mt-16 grid items-center gap-10 lg:grid-cols-2">
         {/* Image */}
         <Reveal className="relative order-2 lg:order-1">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[2rem] glass">
+          <div className="group relative aspect-[4/3] overflow-hidden rounded-[2rem] glass shadow-2xl">
             <Image
-              src="/assets/about-drone.png"
-              alt="Manakrishi agricultural drone"
+              src="/assets/about-real-drone.png"
+              alt="High resolution realistic agricultural hexacopter spraying drone operating in Indian farmland"
               fill
               sizes="(max-width: 1024px) 92vw, 45vw"
-              className="object-cover"
+              className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050a07]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#050a07]/70 via-transparent to-transparent" />
           </div>
           <motion.div
             initial={{ opacity: 0, y: 20 }}

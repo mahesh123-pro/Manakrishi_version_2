@@ -28,20 +28,23 @@ export function PrecisionFarming() {
         {/* Feature image tile */}
         <motion.div
           variants={fadeUp}
-          className="relative col-span-1 min-h-[220px] overflow-hidden rounded-3xl glass md:col-span-3 lg:col-span-3 lg:row-span-2"
+          className="group relative col-span-1 min-h-[260px] overflow-hidden rounded-[2rem] glass md:col-span-3 lg:col-span-3 lg:row-span-2 shadow-2xl"
         >
           <Image
-            src="/assets/pexels-magda-ehlers-pexels-34182369.jpg"
-            alt="Drone spraying a field with precision"
+            src="/assets/drone-spraying-banner.png"
+            alt="Photorealistic commercial spraying drone hovering and applying fine spray over green crop fields"
             fill
             sizes="(max-width: 1024px) 92vw, 45vw"
-            className="object-cover"
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050a07] via-[#050a07]/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050a07] via-[#050a07]/40 to-transparent" />
           <div className="absolute bottom-0 p-7">
-            <p className="font-heading text-2xl font-bold">Autonomous. Accurate. Adaptive.</p>
-            <p className="mt-2 max-w-sm text-sm text-muted">
-              Variable-rate spraying guided by AI keeps chemical use and waste to a minimum.
+            <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-emerald/20 px-3 py-1 text-xs font-semibold text-emerald backdrop-blur-md">
+              AI Precision Dosing
+            </span>
+            <p className="font-heading text-2xl font-bold sm:text-3xl">Autonomous. Accurate. Adaptive.</p>
+            <p className="mt-2 max-w-md text-sm text-muted">
+              Variable-rate spraying guided by GPS and AI keeps chemical dosage precise, preventing chemical burn and eliminating waste.
             </p>
           </div>
         </motion.div>
