@@ -69,7 +69,7 @@ export function HowItWorks() {
                     <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald/12 text-emerald">
                       <Icon className="h-5 w-5" />
                     </span>
-                    <span className="font-heading text-3xl font-bold text-white/10">{s.n}</span>
+                    <span className="font-heading text-3xl font-bold text-green/15">{s.n}</span>
                   </div>
                   <h3 className="font-heading text-lg font-semibold">{t(s.title)}</h3>
                   <p className="mt-1.5 text-sm leading-relaxed text-muted">{t(s.body)}</p>

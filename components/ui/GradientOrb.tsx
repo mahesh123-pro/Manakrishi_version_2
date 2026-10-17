@@ -7,9 +7,9 @@ interface GradientOrbProps {
 }
 
 const colorMap = {
-  green: "rgba(74,222,128,0.35)",
-  cyan: "rgba(0,188,212,0.30)",
-  gold: "rgba(255,179,0,0.28)",
+  green: "rgba(49,118,71,0.15)",
+  cyan: "rgba(49,118,71,0.12)",
+  gold: "rgba(35,92,56,0.16)",
 };
 
 /** Decorative blurred gradient blob for section backgrounds. */
@@ -17,7 +17,7 @@ export function GradientOrb({ className, color = "green", size = 480 }: Gradient
   return (
     <div
       aria-hidden
-      className={cn("pointer-events-none absolute -z-10 rounded-full blur-[110px] animate-drift", className)}
+      className={cn("pointer-events-none absolute -z-10 rounded-full blur-[110px]", className)}
       style={{
         width: size,
         height: size,

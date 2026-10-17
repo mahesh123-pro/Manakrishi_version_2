@@ -27,7 +27,7 @@ export function About() {
       <div className="mt-16 grid items-center gap-10 lg:grid-cols-2">
         {/* Image */}
         <Reveal className="relative order-2 lg:order-1">
-          <div className="group relative aspect-[4/3] overflow-hidden rounded-[2rem] glass shadow-2xl">
+          <div className="group relative aspect-[4/3] overflow-hidden rounded-[2rem] glass shadow-lg">
             <Image
               src="/assets/about-real-drone.png"
               alt="High resolution realistic agricultural hexacopter spraying drone operating in Indian farmland"
@@ -97,7 +97,7 @@ export function About() {
           return (
             <motion.div key={h.title.en} variants={fadeUp}>
               <GlassCard className="h-full">
-                <span className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-green to-emerald text-[#06120b]">
+                <span className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-green to-emerald text-white">
                   <Icon className="h-6 w-6" />
                 </span>
                 <h3 className="font-heading text-lg font-semibold">{t(h.title)}</h3>

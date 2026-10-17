@@ -36,16 +36,16 @@ export function SectionHeading({
       {eyebrow && (
         <motion.span
           variants={fadeUp}
-          className="inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] glass px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-emerald"
+          className="inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] glass px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-emerald"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald animate-pulse" />
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald" />
           {eyebrow}
         </motion.span>
       )}
       <motion.h2
         variants={fadeUp}
         className={cn(
-          "font-heading text-4xl font-bold leading-[1.05] sm:text-5xl lg:text-6xl",
+          "font-heading text-3xl font-semibold leading-[1.15] sm:text-4xl lg:text-5xl",
           titleClassName
         )}
       >

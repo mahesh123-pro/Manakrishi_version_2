@@ -22,7 +22,7 @@ export function LanguageToggle({ className }: { className?: string }) {
           aria-pressed={locale === l}
           className={cn(
             "rounded-full px-3 py-1.5 transition-colors",
-            locale === l ? "bg-emerald text-[#06120b]" : "text-muted hover:text-foreground"
+            locale === l ? "bg-emerald text-white" : "text-muted hover:text-foreground"
           )}
         >
           {l === "en" ? "EN" : "తెలుగు"}

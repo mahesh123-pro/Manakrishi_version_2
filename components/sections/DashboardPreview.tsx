@@ -13,7 +13,7 @@ const statusColor: Record<string, string> = {
   Spraying: "text-emerald bg-emerald/15",
   Assigned: "text-cyan bg-cyan/12",
   Completed: "text-gold bg-gold/15",
-  New: "text-muted bg-white/10",
+  New: "text-muted bg-green/10",
 };
 
 const kpis = [
@@ -32,7 +32,7 @@ export function DashboardPreview() {
       <SectionHeading eyebrow={t("dashboard.eyebrow")} title={t("dashboard.title")} />
 
       <Reveal className="mx-auto mt-14 max-w-6xl">
-        <div className="overflow-hidden rounded-[1.6rem] glass-strong shadow-2xl">
+        <div className="overflow-hidden rounded-[1.6rem] glass-strong shadow-lg">
           {/* window chrome */}
           <div className="flex items-center gap-2 border-b border-[var(--border)] px-5 py-3.5">
             <span className="h-3 w-3 rounded-full bg-red-400/70" />
@@ -86,7 +86,7 @@ export function DashboardPreview() {
                 <p className="mb-3 text-sm font-semibold">Recent bookings</p>
                 <div className="flex flex-col gap-2">
                   {DASHBOARD_BOOKINGS.map((b) => (
-                    <div key={b.id} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 rounded-xl bg-white/[0.02] px-3 py-2.5 text-xs">
+                    <div key={b.id} className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 rounded-xl bg-green/[0.03] px-3 py-2.5 text-xs">
                       <span className="font-mono text-muted-2">{b.id}</span>
                       <span className="truncate">{b.farmer} · {b.crop}</span>
                       <span className="text-muted-2">{b.acres} ac</span>
@@ -101,7 +101,7 @@ export function DashboardPreview() {
 
             {/* right: live map */}
             <div className="relative min-h-[280px] overflow-hidden rounded-2xl glass grid-bg">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_40%,rgba(74,222,128,0.12),transparent_60%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_40%,rgba(49,118,71,0.15),transparent_60%)]" />
               <p className="absolute left-4 top-4 flex items-center gap-2 text-xs font-semibold">
                 <MapPin className="h-3.5 w-3.5 text-emerald" /> Live field map
               </p>
@@ -111,7 +111,7 @@ export function DashboardPreview() {
                 <motion.path
                   d="M30 150 L60 150 L60 110 L100 110 L100 70 L150 70 L150 40"
                   fill="none"
-                  stroke="rgba(74,222,128,0.5)"
+                  stroke="rgba(49,118,71,0.15)"
                   strokeWidth="1.5"
                   strokeDasharray="4 4"
                   initial={{ pathLength: 0 }}
@@ -123,7 +123,7 @@ export function DashboardPreview() {
 
               {/* moving drone */}
               <motion.span
-                className="absolute grid h-7 w-7 place-items-center rounded-full bg-emerald text-[#06120b] shadow-[0_0_20px_rgba(74,222,128,0.7)]"
+                className="absolute grid h-7 w-7 place-items-center rounded-full bg-emerald text-white shadow-[0_0_20px_rgba(49,118,71,0.15)]"
                 initial={{ offsetDistance: "0%" }}
                 animate={{ left: ["15%", "75%", "75%"], top: ["75%", "35%", "20%"] }}
                 transition={{ duration: 6, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}

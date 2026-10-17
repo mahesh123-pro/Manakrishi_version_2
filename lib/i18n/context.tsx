@@ -27,9 +27,12 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   // Hydrate from storage on mount.
   useEffect(() => {
-    const saved = (typeof window !== "undefined" &&
-      window.localStorage.getItem(STORAGE_KEY)) as Locale | null;
-    if (saved === "en" || saved === "te") setLocaleState(saved);
+    try {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
+      if (saved === "en" || saved === "te") setLocaleState(saved);
+    } catch {
+      // Keep the default language when browser storage is unavailable.
+    }
   }, []);
 
   // Reflect on <html lang> + persist.

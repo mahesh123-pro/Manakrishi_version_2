@@ -21,7 +21,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/book"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-gold-400 to-gold px-6 py-3 text-sm font-semibold text-[#1a1200]"
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-green to-emerald px-6 py-3 text-sm font-semibold text-white"
           >
             <Send className="h-4 w-4" /> Book a Drone
           </Link>

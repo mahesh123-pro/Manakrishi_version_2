@@ -22,12 +22,12 @@ export function IndiaMap() {
       <div className="mt-14 grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
         {/* map */}
         <div className="relative mx-auto aspect-[5/6] w-full max-w-md">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_55%,rgba(74,222,128,0.12),transparent_60%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_55%,rgba(49,118,71,0.15),transparent_60%)]" />
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full">
             <defs>
               <linearGradient id="india-fill" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="rgba(74,222,128,0.16)" />
-                <stop offset="100%" stopColor="rgba(0,188,212,0.10)" />
+                <stop offset="0%" stopColor="rgba(49,118,71,0.15)" />
+                <stop offset="100%" stopColor="rgba(49,118,71,0.12)" />
               </linearGradient>
             </defs>
             <motion.path
@@ -56,7 +56,7 @@ export function IndiaMap() {
               <span
                 className={cn(
                   "block h-2.5 w-2.5 rounded-full ring-2 ring-[var(--background)]",
-                  p.status === "current" ? "bg-emerald shadow-[0_0_12px_rgba(74,222,128,0.9)]" : "bg-cyan/70"
+                  p.status === "current" ? "bg-emerald shadow-[0_0_12px_rgba(49,118,71,0.15)]" : "bg-cyan/70"
                 )}
               />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] font-medium text-muted">
@@ -67,7 +67,7 @@ export function IndiaMap() {
 
           {/* flying drone */}
           <motion.span
-            className="absolute grid h-8 w-8 place-items-center rounded-full bg-emerald text-[#06120b] shadow-[0_0_20px_rgba(74,222,128,0.7)]"
+            className="absolute grid h-8 w-8 place-items-center rounded-full bg-emerald text-white shadow-[0_0_20px_rgba(49,118,71,0.15)]"
             animate={{ left: ["47%", "53%", "45%", "47%"], top: ["62%", "58%", "55%", "62%"] }}
             transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
             style={{ translateX: "-50%", translateY: "-50%" }}
@@ -84,7 +84,7 @@ export function IndiaMap() {
           </p>
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 rounded-2xl glass px-5 py-4">
-              <span className="h-3 w-3 rounded-full bg-emerald shadow-[0_0_10px_rgba(74,222,128,0.9)]" />
+              <span className="h-3 w-3 rounded-full bg-emerald shadow-[0_0_10px_rgba(49,118,71,0.15)]" />
               <div>
                 <p className="text-sm font-semibold">{t("map.current")}</p>
                 <p className="text-xs text-muted">Hyderabad · Warangal · Khammam · Nizamabad</p>

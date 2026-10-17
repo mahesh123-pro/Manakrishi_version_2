@@ -23,16 +23,16 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <Stats />
       <CropsStrip />
+      <Services />
+      <Machinery />
+      <HowItWorks />
+      <Stats />
       <About />
       <WhyDrone />
       <Comparison />
-      <HowItWorks />
       <DroneTech />
       <PrecisionFarming />
-      <Services />
-      <Machinery />
       <SupportSchemes />
       <Benefits />
       <DashboardPreview />

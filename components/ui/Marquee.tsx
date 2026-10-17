@@ -12,7 +12,7 @@ export function Marquee({
   reverse?: boolean;
 }) {
   return (
-    <div className={cn("mask-fade-x flex overflow-hidden", className)}>
+    <div className={cn("farm-marquee mask-fade-x flex overflow-hidden", className)}>
       <div
         className="flex shrink-0 items-center gap-10 pr-10"
         style={{ animation: `marquee 32s linear infinite ${reverse ? "reverse" : ""}` }}

@@ -54,9 +54,9 @@ export function Footer() {
             {t("footer.quick")}
           </h4>
           {[
-            { label: t("nav.tech"), href: "#technology" },
-            { label: t("nav.how"), href: "#how-it-works" },
-            { label: t("nav.services"), href: "#services" },
+            { label: t("nav.tech"), href: "/#technology" },
+            { label: t("nav.how"), href: "/#how-it-works" },
+            { label: t("nav.services"), href: "/#services" },
             { label: t("nav.book"), href: "/book" },
           ].map((l) => (
             <a key={l.label} href={l.href} className="text-sm text-muted transition-colors hover:text-foreground">
@@ -108,12 +108,13 @@ export function Footer() {
               name="email"
               required
               placeholder={t("footer.newsletter")}
+              aria-label={t("footer.newsletter")}
               className="w-full bg-transparent px-3 text-sm outline-none placeholder:text-muted-2"
             />
             <button
               type="submit"
               aria-label={t("footer.subscribe")}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald text-[#06120b]"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-emerald text-white"
             >
               <ArrowRight className="h-4 w-4" />
             </button>

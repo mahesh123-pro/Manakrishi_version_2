@@ -1,151 +1,70 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X, Send } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ArrowUpRight, Menu, X } from "lucide-react";
 import { NAV_LINKS, SITE } from "@/lib/content";
 import { useT } from "@/lib/i18n/context";
 import { LanguageToggle } from "./LanguageToggle";
-import { ThemeToggle } from "./ThemeToggle";
-import { cn } from "@/lib/utils";
 
 export function Nav() {
   const t = useT();
-  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const hrefFor = (href: string) => pathname === "/" ? href : `/${href}`;
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const controls = menuRef.current?.querySelectorAll<HTMLElement>('a[href], button');
+    controls?.[0]?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+      if (event.key !== "Tab" || !controls?.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    const onResize = () => { if (window.innerWidth >= 1280) setOpen(false); };
+    document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("resize", onResize);
+      triggerRef.current?.focus();
+    };
   }, [open]);
 
   return (
-    <header
-      className={cn(
-        "fixed inset-x-0 top-0 z-50 transition-all duration-500",
-        scrolled ? "py-2.5" : "py-4"
-      )}
-    >
-      <nav
-        className={cn(
-          "mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-full px-4 transition-all duration-500 sm:px-5",
-          scrolled ? "glass-strong py-2.5" : "py-2"
-        )}
-        style={{ width: "min(94%, 80rem)" }}
-      >
-        <Link href="/" className="flex items-center gap-2.5" aria-label="Manakrishi home">
-          <Image
-            src="/assets/manakrishi-logo.png"
-            alt="Manakrishi"
-            width={38}
-            height={38}
-            className="h-9 w-9 rounded-lg object-contain"
-            priority
-          />
-          <span className="font-heading text-lg font-bold tracking-tight">
-            Mana<span className="text-emerald">krishi</span>
-          </span>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-green/10 bg-white/95 backdrop-blur-xl">
+      <nav aria-label="Main navigation" className="mx-auto flex h-22 w-[90%] max-w-7xl items-center justify-between gap-5">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Manakrishi home">
+          <Image src="/assets/manakrishi-logo.png" alt="" width={44} height={44} priority className="h-11 w-11 object-contain" />
+          <span className="font-heading text-2xl font-semibold tracking-tight">Mana<span className="text-emerald">krishi</span><span className="mt-0.5 block text-[9px] font-medium uppercase tracking-[0.2em] text-muted">{t("brand.tagline")}</span></span>
         </Link>
-
-        <div className="hidden items-center gap-1 lg:flex">
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.key}
-              href={l.href}
-              className="rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
-            >
-              {t(l.key)}
-            </a>
-          ))}
+        <div className="hidden items-center gap-6 xl:flex">
+          {NAV_LINKS.map((link) => <a key={link.key} href={hrefFor(link.href)} className="text-[13px] font-medium text-muted transition-colors hover:text-green">{t(link.key)}</a>)}
         </div>
-
-        <div className="flex items-center gap-2">
-          <LanguageToggle className="hidden sm:inline-flex" />
-          <ThemeToggle />
-          <Link
-            href="/book"
-            className="hidden items-center gap-2 rounded-full bg-gradient-to-br from-gold-400 to-gold px-5 py-2.5 text-sm font-semibold text-[#1a1200] shadow-[0_8px_30px_-8px_rgba(255,179,0,0.6)] transition-transform hover:scale-[1.03] sm:inline-flex"
-          >
-            <Send className="h-4 w-4" />
-            {t("nav.book")}
-          </Link>
-          <button
-            onClick={() => setOpen(true)}
-            aria-label="Open menu"
-            className="grid h-9 w-9 place-items-center rounded-full glass lg:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+        <div className="flex items-center gap-3">
+          <div className="hidden sm:block"><LanguageToggle /></div>
+          <Link href="/book" className="farm-button hidden px-5 py-3 text-xs sm:inline-flex">{t("nav.book")}<ArrowUpRight className="h-4 w-4" /></Link>
+          <button ref={triggerRef} onClick={() => setOpen(true)} aria-label="Open menu" aria-expanded={open} aria-controls="mobile-menu" className="grid h-11 w-11 place-items-center rounded-full border border-green/15 text-green xl:hidden"><Menu className="h-5 w-5" /></button>
         </div>
       </nav>
-
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[80] bg-[var(--background)]/95 backdrop-blur-xl lg:hidden"
-          >
-            <div className="flex items-center justify-between px-6 py-5">
-              <span className="font-heading text-lg font-bold">
-                Mana<span className="text-emerald">krishi</span>
-              </span>
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Close menu"
-                className="grid h-10 w-10 place-items-center rounded-full glass"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <motion.ul
-              initial="hidden"
-              animate="show"
-              variants={{ show: { transition: { staggerChildren: 0.06 } } }}
-              className="flex flex-col gap-2 px-6 pt-6"
-            >
-              {NAV_LINKS.map((l) => (
-                <motion.li
-                  key={l.key}
-                  variants={{ hidden: { opacity: 0, x: -20 }, show: { opacity: 1, x: 0 } }}
-                >
-                  <a
-                    href={l.href}
-                    onClick={() => setOpen(false)}
-                    className="block border-b border-[var(--border)] py-4 font-heading text-2xl font-semibold"
-                  >
-                    {t(l.key)}
-                  </a>
-                </motion.li>
-              ))}
-            </motion.ul>
-            <div className="mt-8 flex flex-col gap-4 px-6">
-              <Link
-                href="/book"
-                onClick={() => setOpen(false)}
-                className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-gold-400 to-gold px-6 py-4 font-semibold text-[#1a1200]"
-              >
-                <Send className="h-4 w-4" />
-                {t("nav.book")}
-              </Link>
-              <LanguageToggle />
-              <a href={SITE.whatsapp} className="text-center text-sm text-muted">
-                {SITE.phone}
-              </a>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {open && (
+        <div ref={menuRef} id="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation menu" className="fixed inset-0 z-50 h-dvh overflow-y-auto bg-white p-6 xl:hidden">
+          <div className="flex items-center justify-between"><span className="font-heading text-2xl font-semibold text-green">Manakrishi</span><button onClick={() => setOpen(false)} aria-label="Close menu" className="grid h-11 w-11 place-items-center rounded-full bg-green/5 text-green"><X className="h-5 w-5" /></button></div>
+          <div className="mt-10 flex flex-col">{NAV_LINKS.map((link) => <a key={link.key} href={hrefFor(link.href)} onClick={() => setOpen(false)} className="border-b border-green/10 py-5 font-heading text-2xl">{t(link.key)}</a>)}</div>
+          <div className="mt-8 flex flex-col items-start gap-6"><Link href="/book" onClick={() => setOpen(false)} className="farm-button">{t("nav.book")}<ArrowUpRight className="h-4 w-4" /></Link><LanguageToggle /><a href={SITE.whatsapp} className="text-sm text-green">{SITE.phone}</a></div>
+        </div>
+      )}
     </header>
   );
 }

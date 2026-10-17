@@ -26,7 +26,7 @@ export function Contact() {
       {/* CTA banner */}
       <Reveal className="mb-16">
         <div className="relative overflow-hidden rounded-[2rem] glass-strong p-10 text-center sm:p-14">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(255,179,0,0.14),transparent_60%)]" />
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_0%,rgba(35,92,56,0.16),transparent_60%)]" />
           <h2 className="font-heading text-3xl font-bold sm:text-5xl">
             Ready to <span className="text-gradient-gold">transform your farm?</span>
           </h2>
@@ -36,7 +36,7 @@ export function Contact() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <a
               href="/book"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-gold-400 to-gold px-8 py-4 text-sm font-semibold text-[#1a1200] shadow-[0_14px_44px_-12px_rgba(255,179,0,0.7)] transition-transform hover:scale-[1.04]"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-green to-emerald px-8 py-4 text-sm font-semibold text-white shadow-[0_14px_44px_-12px_rgba(35,92,56,0.16)] transition-transform hover:scale-[1.04]"
             >
               <Send className="h-4 w-4" /> {t("cta.book")}
             </a>
@@ -95,7 +95,7 @@ export function Contact() {
                 required
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="rounded-xl border border-[var(--border)] bg-white/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald"
+                className="rounded-xl border border-[var(--border)] bg-green/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald"
                 placeholder="Your name"
               />
             </div>
@@ -107,7 +107,7 @@ export function Contact() {
                 inputMode="tel"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                className="rounded-xl border border-[var(--border)] bg-white/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald"
+                className="rounded-xl border border-[var(--border)] bg-green/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald"
                 placeholder="10-digit mobile"
               />
             </div>
@@ -118,13 +118,13 @@ export function Contact() {
                 rows={4}
                 value={form.message}
                 onChange={(e) => setForm({ ...form, message: e.target.value })}
-                className="resize-none rounded-xl border border-[var(--border)] bg-white/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald"
+                className="resize-none rounded-xl border border-[var(--border)] bg-green/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald"
                 placeholder="Tell us about your crop and field size…"
               />
             </div>
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-green to-emerald px-6 py-3.5 text-sm font-semibold text-[#06120b] transition-transform hover:scale-[1.02]"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-br from-green to-emerald px-6 py-3.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
             >
               <MessageCircle className="h-4 w-4" /> Send via WhatsApp
             </button>

@@ -32,7 +32,7 @@ export function Benefits() {
               className="group relative overflow-hidden rounded-3xl glass p-7"
             >
               <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald/10 blur-2xl transition-opacity duration-500 group-hover:opacity-100 opacity-0" />
-              <span className="mb-5 inline-grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-green to-emerald text-[#06120b]">
+              <span className="mb-5 inline-grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-green to-emerald text-white">
                 <Icon className="h-7 w-7" />
               </span>
               <h3 className="font-heading text-lg font-semibold">{t(b.title)}</h3>

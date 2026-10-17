@@ -11,7 +11,7 @@ import { GradientOrb } from "@/components/ui/GradientOrb";
 import { cn } from "@/lib/utils";
 
 const phoneSteps = [
-  { icon: LogIn, title: "Login", body: "Sign in with your mobile number — OTP, no passwords." },
+  { icon: LogIn, title: "Your Details", body: "Share your name and mobile number so our team can reach you." },
   { icon: Sprout, title: "Choose Crop", body: "Pick paddy, cotton, chilli, maize and more." },
   { icon: MapPin, title: "Capture Location", body: "Share your village & field to map the route." },
   { icon: SprayCan, title: "Select Pesticide", body: "Choose your chemical or get an advisor pick." },
@@ -59,7 +59,7 @@ export function BookingShowcase() {
                     <span
                       className={cn(
                         "grid h-10 w-10 shrink-0 place-items-center rounded-xl transition-colors",
-                        active === i ? "bg-emerald text-[#06120b]" : "bg-white/5 text-muted"
+                        active === i ? "bg-emerald text-white" : "bg-green/5 text-muted"
                       )}
                     >
                       <SIcon className="h-5 w-5" />
@@ -77,7 +77,7 @@ export function BookingShowcase() {
           </ul>
           <Link
             href="/book"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-gold-400 to-gold px-7 py-3.5 text-sm font-semibold text-[#1a1200] shadow-[0_12px_40px_-12px_rgba(255,179,0,0.6)] transition-transform hover:scale-[1.03]"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-br from-green to-emerald px-7 py-3.5 text-sm font-semibold text-white shadow-[0_12px_40px_-12px_rgba(35,92,56,0.16)] transition-transform hover:scale-[1.03]"
           >
             <Send className="h-4 w-4" /> {t("cta.book")}
           </Link>
@@ -86,10 +86,10 @@ export function BookingShowcase() {
         {/* phone */}
         <div className="relative flex justify-center">
           <div className="absolute inset-0 -z-10 mx-auto h-[70%] w-[70%] self-center rounded-full bg-emerald/15 blur-[90px]" />
-          <div className="relative h-[560px] w-[280px] rounded-[2.6rem] border border-white/10 bg-[#0a120d] p-3 shadow-2xl">
+          <div className="relative h-[560px] w-[280px] rounded-[2.6rem] border border-green/15 bg-[#e6eddf] p-3 shadow-lg">
             {/* notch */}
             <div className="absolute left-1/2 top-3 z-10 h-6 w-28 -translate-x-1/2 rounded-full bg-black/70" />
-            <div className="relative h-full w-full overflow-hidden rounded-[2.1rem] bg-gradient-to-b from-[#0f1a13] to-[#0a120d]">
+            <div className="relative h-full w-full overflow-hidden rounded-[2.1rem] bg-gradient-to-b from-white to-[#f1f6ed]">
               {/* status bar */}
               <div className="flex items-center justify-between px-6 pt-4 text-[10px] text-muted">
                 <span>9:41</span>
@@ -113,7 +113,7 @@ export function BookingShowcase() {
                     key={i}
                     className={cn(
                       "h-1.5 rounded-full transition-all duration-300",
-                      i === active ? "w-6 bg-emerald" : "w-1.5 bg-white/15"
+                      i === active ? "w-6 bg-emerald" : "w-1.5 bg-green/15"
                     )}
                   />
                 ))}
@@ -130,12 +130,12 @@ export function BookingShowcase() {
                     transition={{ duration: 0.4 }}
                     className="rounded-3xl glass p-6"
                   >
-                    <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-green to-emerald text-[#06120b]">
+                    <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-green to-emerald text-white">
                       <Icon className="h-7 w-7" />
                     </span>
                     <p className="font-heading text-xl font-bold">{Step.title}</p>
                     <p className="mt-2 text-sm text-muted">{Step.body}</p>
-                    <div className="mt-6 rounded-full bg-gold py-3 text-center text-sm font-semibold text-[#1a1200]">
+                    <div className="mt-6 rounded-full bg-green py-3 text-center text-sm font-semibold text-white">
                       {active === phoneSteps.length - 1 ? "Confirm Booking" : "Continue"}
                     </div>
                   </motion.div>

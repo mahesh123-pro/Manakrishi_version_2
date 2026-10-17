@@ -10,7 +10,7 @@ import { fadeUp, stagger } from "@/lib/motion";
 
 function Bar({ score, tone }: { score: number; tone: "manual" | "drone" }) {
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-green/5">
       <motion.div
         initial={{ width: 0 }}
         whileInView={{ width: `${score}%` }}
@@ -42,7 +42,7 @@ export function Comparison() {
         {/* header */}
         <div className="grid grid-cols-[1.2fr_1fr_1fr] items-center gap-4 border-b border-[var(--border)] px-5 py-5 sm:px-8">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-2">Metric</span>
-          <span className="flex items-center gap-2 text-sm font-semibold text-orange-300">
+          <span className="flex items-center gap-2 text-sm font-semibold text-orange-800">
             <Hand className="h-4 w-4" /> {t("compare.manual")}
           </span>
           <span className="flex items-center gap-2 text-sm font-semibold text-emerald">

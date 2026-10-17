@@ -24,7 +24,7 @@ export function SupportSchemes() {
         className="mt-16 grid gap-6 lg:grid-cols-2"
       >
         {/* Insurance */}
-        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-2xl hover:border-[var(--border-strong)]">
+        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-lg hover:border-[var(--border-strong)]">
           <div className="relative aspect-[16/9] overflow-hidden">
             <Image
               src="/assets/scheme-insurance.png"
@@ -51,7 +51,7 @@ export function SupportSchemes() {
         </motion.div>
 
         {/* Government schemes */}
-        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-2xl hover:border-[var(--border-strong)]">
+        <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-lg hover:border-[var(--border-strong)]">
           <div className="relative aspect-[16/9] overflow-hidden">
             <Image
               src="/assets/scheme-govt.png"

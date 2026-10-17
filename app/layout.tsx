@@ -64,7 +64,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f1610",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -97,7 +97,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <body className={`${outfit.variable} ${inter.variable} antialiased`}>
         <script
           type="application/ld+json"

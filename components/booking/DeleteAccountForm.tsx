@@ -55,7 +55,7 @@ export function DeleteAccountForm() {
   }
 
   const fieldCls = (bad?: string) =>
-    `w-full rounded-xl border bg-white/[0.03] py-3 pl-10 pr-4 text-sm outline-none transition-colors focus:border-emerald ${
+    `w-full rounded-xl border bg-green/[0.03] py-3 pl-10 pr-4 text-sm outline-none transition-colors focus:border-emerald ${
       bad ? "border-red-400/70" : "border-[var(--border)]"
     }`;
 
@@ -99,7 +99,7 @@ export function DeleteAccountForm() {
                   className={fieldCls(errors.fullname)}
                 />
               </div>
-              {errors.fullname && <p className="text-xs text-red-400">{errors.fullname}</p>}
+              {errors.fullname && <p className="text-xs text-red-700">{errors.fullname}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -115,7 +115,7 @@ export function DeleteAccountForm() {
                   className={fieldCls(errors.mobile)}
                 />
               </div>
-              {errors.mobile && <p className="text-xs text-red-400">{errors.mobile}</p>}
+              {errors.mobile && <p className="text-xs text-red-700">{errors.mobile}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -124,17 +124,17 @@ export function DeleteAccountForm() {
                 id="d-reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className={`w-full rounded-xl border bg-white/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald ${
+                className={`w-full rounded-xl border bg-green/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald ${
                   errors.reason ? "border-red-400/70" : "border-[var(--border)]"
                 }`}
               >
                 {REASONS.map((r) => (
-                  <option key={r.value} value={r.value} className="bg-[#0f1a13]">
+                  <option key={r.value} value={r.value} className="bg-white">
                     {r.label}
                   </option>
                 ))}
               </select>
-              {errors.reason && <p className="text-xs text-red-400">{errors.reason}</p>}
+              {errors.reason && <p className="text-xs text-red-700">{errors.reason}</p>}
             </div>
 
             {reason === "other" && (
@@ -145,15 +145,15 @@ export function DeleteAccountForm() {
                   rows={3}
                   value={otherReason}
                   onChange={(e) => setOtherReason(e.target.value)}
-                  className={`w-full resize-none rounded-xl border bg-white/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald ${
+                  className={`w-full resize-none rounded-xl border bg-green/[0.03] px-4 py-3 text-sm outline-none transition-colors focus:border-emerald ${
                     errors.otherReason ? "border-red-400/70" : "border-[var(--border)]"
                   }`}
                 />
-                {errors.otherReason && <p className="text-xs text-red-400">{errors.otherReason}</p>}
+                {errors.otherReason && <p className="text-xs text-red-700">{errors.otherReason}</p>}
               </div>
             )}
 
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border)] bg-white/[0.02] p-4">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border)] bg-green/[0.03] p-4">
               <input
                 type="checkbox"
                 checked={confirm}
@@ -165,7 +165,7 @@ export function DeleteAccountForm() {
                 Manakrishi, and this action cannot be undone.
               </span>
             </label>
-            {errors.confirm && <p className="-mt-2 text-xs text-red-400">{errors.confirm}</p>}
+            {errors.confirm && <p className="-mt-2 text-xs text-red-700">{errors.confirm}</p>}
 
             <button
               type="submit"

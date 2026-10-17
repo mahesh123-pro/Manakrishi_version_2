@@ -36,8 +36,8 @@ export function DroneTech() {
 
       <div className="mt-16 grid items-center gap-8 lg:grid-cols-2">
         {/* 3D viewer */}
-        <div className="relative order-1 h-[360px] overflow-hidden rounded-[2rem] glass sm:h-[440px] shadow-2xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(0,188,212,0.14),transparent_60%)]" />
+        <div className="relative order-1 h-[360px] overflow-hidden rounded-[2rem] glass sm:h-[440px] shadow-lg">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(49,118,71,0.12),transparent_60%)]" />
           <DroneCanvas />
           <span className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full glass px-4 py-1.5 text-xs text-muted backdrop-blur-md">
             <Rotate3d className="h-3.5 w-3.5" /> {t("tech.hint")}
@@ -90,7 +90,7 @@ export function DroneTech() {
                 { title: "Efficient pesticide application", sub: "Cut chemical usage by up to 30%" },
                 { title: "Location-based service booking", sub: "GPS field mapping & route dispatch" },
               ].map((item) => (
-                <div key={item.title} className="flex items-start gap-2.5 rounded-xl bg-white/[0.03] p-3 border border-white/5">
+                <div key={item.title} className="flex items-start gap-2.5 rounded-xl bg-green/[0.03] p-3 border border-green/10">
                   <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-emerald/20 text-emerald text-xs">✓</span>
                   <div>
                     <p className="text-xs font-semibold text-foreground">{item.title}</p>

@@ -24,7 +24,7 @@ export function GlassCard({ children, className, interactive = true }: GlassCard
       {/* top sheen */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald/50 to-transparent opacity-70" />
       {interactive && (
-        <div className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background:radial-gradient(600px_circle_at_var(--x,50%)_var(--y,0%),rgba(74,222,128,0.12),transparent_40%)]" />
+        <div className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100 [background:radial-gradient(600px_circle_at_var(--x,50%)_var(--y,0%),rgba(49,118,71,0.15),transparent_40%)]" />
       )}
       <div className="relative z-10">{children}</div>
     </motion.div>

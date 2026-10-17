@@ -79,3 +79,12 @@ lib/            content, i18n, firebase, motion, utils
 - `npm run build` — production build
 - `npm run start` — serve the production build
 - `npm run lint` — lint
+- `npm run test:booking` — booking date, estimate and dispatch-payload checks (Node.js 22.18+)
+
+## Booking experience
+
+The `/book` flow has three steps: service and field, visit preferences, then review and contact details. Service links can preselect `?service=drone`, `?service=tractor`, or `?service=combined`.
+
+Time and contact preferences and optional notes are sent with the existing booking payload. The legacy `chemicalOrImplement` field remains available to dispatch integrations. Combined bookings include both selections in that field. Existing external spreadsheets or automations may need their own column/template updates to display the added preferences.
+
+Estimates use the existing indicative drone and tractor rates; combined services require a team quote. A submitted request does not reserve a slot until the team confirms availability, pricing and weather conditions.

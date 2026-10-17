@@ -27,20 +27,34 @@ export const dict: Record<string, Localized> = {
   "nav.contact": { en: "Contact", te: "సంప్రదించండి" },
   "nav.book": { en: "Book a Drone", te: "డ్రోన్ బుక్ చేయండి" },
 
+  "hero.cta.services": {"en":"Explore our services","te":"మా సేవలను చూడండి"},
+  "hero.trust.operators": {"en":"Certified operators","te":"శిక్షణ పొందిన ఆపరేటర్లు"},
+  "hero.trust.booking": {"en":"Simple booking","te":"సులభమైన బుకింగ్"},
+  "hero.trust.support": {"en":"Local support","te":"స్థానిక సహాయం"},
+  "hero.local.title": {"en":"Proudly serving Telangana","te":"తెలంగాణ రైతుల సేవలో"},
+  "hero.local.sub": {"en":"Local roots. A shared vision for better farming.","te":"మన నేల. మెరుగైన వ్యవసాయం కోసం మన లక్ష్యం."},
+  "hero.image.eyebrow": {"en":"Made for the Indian field","te":"మన పొలాల కోసం"},
+  "hero.image.title": {"en":"A little innovation. A greener tomorrow.","te":"కొత్త ఆలోచన. పచ్చని రేపటి కోసం."},
+  "hero.card.title": {"en":"Healthy fields, happier farmers","te":"ఆరోగ్యమైన పొలాలు, ఆనందమైన రైతులు"},
+  "hero.card.sub": {"en":"Precision care for the crops you grow.","te":"మీ పంటలకు కచ్చితమైన సంరక్షణ."},
+
   // Hero
   "hero.badge": { en: "India's Drone Agriculture Platform", te: "భారత డ్రోన్ వ్యవసాయ వేదిక" },
-  "hero.title.1": { en: "Revolutionizing Agriculture", te: "వ్యవసాయంలో విప్లవం" },
-  "hero.title.2": { en: "with Intelligent Drone Technology", te: "తెలివైన డ్రోన్ సాంకేతికతతో" },
+  "hero.title.1": { en: "Rooted in farming.", te: "వ్యవసాయమే పునాది." },
+  "hero.title.2": { en: "Growing with you.", te: "మీతో కలిసి ఎదుగుతాం." },
   "hero.sub": {
-    en: "Precision Spraying. Healthier Crops. Smarter Farming.",
+    en: "Care for your crops with precision drone spraying and dependable farm services. Better support for every acre, from the ground up.",
     te: "కచ్చితమైన స్ప్రేయింగ్. ఆరోగ్యకరమైన పంటలు. తెలివైన వ్యవసాయం.",
   },
   "hero.cta.book": { en: "Book a Drone", te: "డ్రోన్ బుక్ చేయండి" },
-  "hero.cta.demo": { en: "Watch Demo", te: "డెమో చూడండి" },
+  "hero.cta.demo": { en: "How it works", te: "ఎలా పనిచేస్తుంది" },
   "hero.cta.tech": { en: "Explore Technology", te: "సాంకేతికతను చూడండి" },
   "hero.scroll": { en: "Scroll to explore", te: "చూడటానికి స్క్రోల్ చేయండి" },
 
   // Common CTAs
+  "cta.advisor": { en: "Talk to an advisor", te: "పంట సలహాదారుతో మాట్లాడండి" },
+  "field.photo.eyebrow": { en: "Precision at work", te: "కచ్చితమైన స్ప్రేయింగ్" },
+  "field.photo.title": { en: "Less effort. More care for every acre.", te: "తక్కువ శ్రమ. ప్రతి ఎకరానికి మరింత సంరక్షణ." },
   "cta.book": { en: "Book Drone Spraying", te: "డ్రోన్ స్ప్రేయింగ్ బుక్ చేయండి" },
   "cta.whatsapp": { en: "Chat on WhatsApp", te: "వాట్సాప్‌లో మాట్లాడండి" },
   "cta.explore": { en: "Explore", te: "చూడండి" },
