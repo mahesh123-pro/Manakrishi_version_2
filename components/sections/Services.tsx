@@ -19,7 +19,7 @@ const badge: Record<ServiceStatus, { label: string; cls: string }> = {
 
 const featuredImages: Record<string, { src: string; alt: string; href: string; cta: string }> = {
   "Drone Spraying": {
-    src: "/assets/drone-spraying-banner.png",
+    src: "/assets/home-drone-flight.webp",
     alt: "Agricultural drone applying a fine spray over a green crop field",
     href: "/book?service=drone",
     cta: "cta.book",

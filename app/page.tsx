@@ -21,7 +21,7 @@ import { Contact } from "@/components/sections/Contact";
 
 export default function Home() {
   return (
-    <>
+    <div className="home-page">
       <Hero />
       <CropsStrip />
       <Services />
@@ -42,6 +42,6 @@ export default function Home() {
       <Roadmap />
       <Faq />
       <Contact />
-    </>
+    </div>
   );
 }

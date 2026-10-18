@@ -317,3 +317,53 @@ select option { background: white; color: #1c3929; }
   .booking-service { display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; }
   .booking-service > div:first-child { height: 100%; min-height: 86px; aspect-ratio: auto; }
 }
+
+.drone-studio { background: radial-gradient(ellipse at 50% 40%, #fff 0%, #f1f5e9 60%, #e6eddd 100%); }
+.drone-studio canvas { touch-action: pan-y; }
+.drone-control { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 40px; border-radius: 12px; padding: 0.65rem 0.9rem; font-size: 0.75rem; font-weight: 600; transition: opacity 180ms ease; }
+.drone-control:hover { opacity: 0.8; }
+.drone-control:disabled { cursor: not-allowed; opacity: 0.45; }
+
+/* Homepage media and interaction system. All hover movement is opt-in by device. */
+.home-hero { background: radial-gradient(ellipse at 95% 0%, #e8f0df 0%, transparent 44%), linear-gradient(120deg, #fbfcf8 0%, #f3f7ec 100%); }
+.home-media { animation: farm-enter 850ms 120ms var(--ease-out-expo) backwards; }
+.home-service-link { transition: background 250ms ease, border-color 250ms ease, box-shadow 350ms ease, transform 350ms var(--ease-out-expo); }
+.home-thumbnail { transition: border-color 250ms ease, box-shadow 250ms ease, background 250ms ease; }
+.home-thumbnail:hover { background: #f6f9f0; box-shadow: 0 4px 16px -8px rgb(35 92 56 / 18%); }
+.home-page .farm-section .glass { transition: border-color 300ms ease, box-shadow 350ms ease, background 300ms ease; }
+.home-page .farm-section .glass:hover { border-color: #b5cba6; box-shadow: 0 18px 38px -24px rgb(35 92 56 / 28%); }
+.home-page .farm-button, .home-page .farm-button-secondary { transition: background 220ms ease, border-color 220ms ease, box-shadow 300ms ease, transform 300ms var(--ease-out-expo); }
+.home-page .farm-button svg, .home-page .farm-button-secondary svg { transition: transform 300ms var(--ease-out-expo); }
+.home-page .farm-button:hover svg { transform: translate(2px, -2px); }
+.home-page .farm-button-secondary:hover svg { transform: translateY(2px); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .home-service-link:hover { transform: translateY(-4px); border-color: #a8c096; background: white; box-shadow: 0 12px 28px -18px rgb(35 92 56 / 30%); }
+  .home-media:hover .home-hero-photo { transform: scale(1.025); }
+  .home-hero-photo { transition: transform 1400ms var(--ease-out-expo); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-media { animation: none; }
+  .home-page .farm-button:hover, .home-page .farm-button:hover svg, .home-page .farm-button-secondary:hover svg, .home-page .home-service-link:hover { transform: none; }
+}
+
+/* Full-screen editorial slideshow, with readable text over every media frame. */
+.fullscreen-home-hero { min-height: max(700px, calc(100svh - 88px)); }
+.fullscreen-home-hero .hero-overlaid { min-height: max(700px, calc(100svh - 88px)); }
+.fullscreen-hero-shade { background: linear-gradient(90deg, rgb(9 29 18 / 84%) 0%, rgb(9 29 18 / 65%) 36%, rgb(9 29 18 / 16%) 75%), linear-gradient(0deg, rgb(9 29 18 / 65%) 0%, transparent 35%); }
+.hero-overlaid .farm-button { background: #d5edb4; color: #183b28; }
+.hero-overlaid .farm-button:hover { background: #e4f5cc; }
+.hero-overlaid .farm-button-secondary { border-color: rgb(255 255 255 / 45%); background: rgb(255 255 255 / 8%); color: #fff; backdrop-filter: blur(8px); }
+.hero-overlaid .farm-button-secondary:hover { background: rgb(255 255 255 / 18%); }
+.hero-media-control { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid rgb(255 255 255 / 35%); border-radius: 999px; color: white; transition: background 250ms ease; }
+.hero-media-control:hover { background: rgb(255 255 255 / 18%); }
+.hero-media-control:focus-visible { outline-color: #fff; }
+@keyframes hero-pan { from { transform: scale(1); } to { transform: scale(1.045); } }
+.hero-slow-zoom { animation: hero-pan 11s linear both; }
+@keyframes brand-loading { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.brand-loader-fill { animation: brand-loading 1.2s var(--ease-out-expo) both; }
+@media (prefers-reduced-motion: reduce) { .brand-loader-fill { animation: none; } }
+@media (max-width: 639px) {
+  .fullscreen-hero-shade { background: linear-gradient(90deg, rgb(9 29 18 / 78%), rgb(9 29 18 / 48%)), linear-gradient(0deg, rgb(9 29 18 / 65%), transparent 65%); }
+  .fullscreen-home-hero, .fullscreen-home-hero .hero-overlaid { min-height: max(740px, calc(100svh - 88px)); }
+}
+@media (prefers-reduced-motion: reduce) { .hero-slow-zoom { animation: none; } }

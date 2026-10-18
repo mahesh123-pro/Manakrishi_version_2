@@ -1,59 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useT } from "@/lib/i18n/context";
 
+/** One bounded brand intro per page load; route changes keep the provider mounted. */
 export function Preloader() {
   const [done, setDone] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const t = useT();
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setDone(true), reduce ? 200 : 1500);
-    return () => clearTimeout(t);
+    const start = performance.now();
+    let finishTimer: ReturnType<typeof setTimeout> | undefined;
+    const finish = () => {
+      finishTimer = setTimeout(() => setDone(true), Math.max(0, (reduce ? 100 : 1200) - (performance.now() - start)));
+    };
+    const safetyTimer = setTimeout(() => setDone(true), reduce ? 350 : 2400);
+    if (document.readyState === "complete") finish();
+    else window.addEventListener("load", finish, { once: true });
+    return () => {
+      clearTimeout(finishTimer);
+      clearTimeout(safetyTimer);
+      window.removeEventListener("load", finish);
+    };
   }, []);
 
-  return (
-    <AnimatePresence>
-      {!done && (
-        <motion.div
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-0 z-[100] grid place-items-center bg-[var(--background)]"
-        >
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative h-20 w-20">
-              <motion.span
-                className="absolute inset-0 rounded-full border-2 border-emerald/30"
-                animate={{ scale: [1, 1.5], opacity: [0.8, 0] }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
-              />
-              <motion.span
-                className="absolute inset-0 rounded-full border-2 border-cyan/30"
-                animate={{ scale: [1, 1.9], opacity: [0.6, 0] }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut", delay: 0.35 }}
-              />
-              <motion.div
-                className="absolute inset-3 grid place-items-center rounded-full bg-gradient-to-br from-green to-emerald"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              >
-                <svg viewBox="0 0 24 24" className="h-7 w-7 text-[#06120b]" fill="currentColor">
-                  <path d="M12 2l1.8 4.6L18.5 5l-1.6 4.7L21 12l-4.1 2.3L18.5 19l-4.7-1.6L12 22l-1.8-4.6L5.5 19l1.6-4.7L3 12l4.1-2.3L5.5 5l4.7 1.6L12 2z" />
-                </svg>
-              </motion.div>
-            </div>
-            <motion.p
-              className="font-heading text-lg font-semibold tracking-wide"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              Mana<span className="text-emerald">krishi</span>
-            </motion.p>
-          </div>
+  return <AnimatePresence>
+    {!done && <motion.div
+      className="brand-preloader fixed inset-0 z-[100] grid place-items-center bg-[#fbfcf8]"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reduceMotion ? 0.1 : 0.5, ease: [0.16, 1, 0.3, 1] }}
+      role="status"
+      aria-label={t({ en: "Loading Manakrishi", te: "మనకృషి లోడ్ అవుతోంది" })}
+    >
+      <div className="flex flex-col items-center px-6 text-center">
+        <motion.div initial={false} animate={reduceMotion ? {} : { scale: [0.96, 1] }} transition={{ duration: 1.1, ease: "easeOut" }}>
+          <Image src="/assets/manakrishi-logo.png" alt="Manakrishi" width={288} height={288} priority sizes="(max-width: 640px) 240px, 288px" className="h-60 w-60 object-contain sm:h-72 sm:w-72" />
         </motion.div>
-      )}
-    </AnimatePresence>
-  );
+        <div aria-hidden="true" className="brand-loader-track mt-1 h-1 w-28 overflow-hidden rounded-full bg-green/10"><span className="brand-loader-fill block h-full w-full origin-left rounded-full bg-green" /></div>
+        <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.18em] text-muted">{t({ en: "Rooted in farming. Growing with you.", te: "వ్యవసాయమే పునాది. మీతో కలిసి ఎదుగుతాం." })}</p>
+      </div>
+    </motion.div>}
+  </AnimatePresence>;
 }

@@ -88,3 +88,15 @@ The `/book` flow has three steps: service and field, visit preferences, then rev
 Time and contact preferences and optional notes are sent with the existing booking payload. The legacy `chemicalOrImplement` field remains available to dispatch integrations. Combined bookings include both selections in that field. Existing external spreadsheets or automations may need their own column/template updates to display the added preferences.
 
 Estimates use the existing indicative drone and tractor rates; combined services require a team quote. A submitted request does not reserve a slot until the team confirms availability, pricing and weather conditions.
+
+## Drone technology viewer
+
+The homepage's `#technology` section includes a procedural six-rotor agricultural drone with a spray tank, landing skids, sensor pod, rotating propellers and a mist demonstration. Visitors can pause, toggle the spray, drag to orbit, select front/top views and reset the camera. Feature buttons explain the airframe, spray system and field guidance.
+
+The viewer loads near the viewport and stops continuous rendering when off-screen, paused or in a hidden tab. Reduced-motion preferences disable autoplay; visitors can explicitly start it. Devices without WebGL receive a photo fallback. This is an illustrative equipment model, not a vendor-specific digital twin or flight/dosage simulator.
+
+## Homepage media
+
+The homepage hero fills the viewport with a four-slide background: three photographs shown for nine seconds each, followed by a silent 15-second MP4 photo reel. Slides crossfade over 1.8 seconds. Pause/play, previous/next and individual slide controls are provided. Rotation and video playback pause off-screen, when the tab is hidden, or while keyboard focus is in the carousel controls. Reduced-motion preferences disable automatic rotation until the visitor explicitly starts it. The MP4 loads when its slide is reached. The reel animates generated photographs; it is not generated flight footage.
+
+Image prompts are saved in `public/assets/homepage-image-prompts.md`. The reel recipe and source notes are in `public/videos/README.md`; its reproducible FFmpeg script is `scripts/create-homepage-reel.cjs`. No video-generation account is connected. Replacing the photo reel with generated motion footage requires a video provider connection, such as Runway.

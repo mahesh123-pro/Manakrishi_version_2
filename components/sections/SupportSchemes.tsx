@@ -27,13 +27,13 @@ export function SupportSchemes() {
         <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-lg hover:border-[var(--border-strong)]">
           <div className="relative aspect-[16/9] overflow-hidden">
             <Image
-              src="/assets/scheme-insurance.png"
-              alt="Post Office Insurance Scheme"
+              src="/assets/farmer-family-insurance.webp"
+              alt="Indian farming family discussing insurance paperwork with a support advisor"
               fill
               sizes="(max-width: 1024px) 92vw, 45vw"
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050a07] via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-forest/15 to-transparent" />
             <span className="absolute left-5 top-5 grid h-11 w-11 place-items-center rounded-2xl glass-strong text-gold shadow-md">
               <ShieldCheck className="h-5 w-5" />
             </span>
@@ -54,13 +54,13 @@ export function SupportSchemes() {
         <motion.div variants={fadeUp} className="group overflow-hidden rounded-[2rem] glass transition-all duration-300 hover:shadow-lg hover:border-[var(--border-strong)]">
           <div className="relative aspect-[16/9] overflow-hidden">
             <Image
-              src="/assets/scheme-govt.png"
-              alt="Government schemes for farmers"
+              src="/assets/farmer-scheme-assistance.webp"
+              alt="Farmer receiving help with scheme application paperwork at a rural support office"
               fill
               sizes="(max-width: 1024px) 92vw, 45vw"
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050a07] via-transparent to-transparent" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-forest/15 to-transparent" />
             <span className="absolute left-5 top-5 grid h-11 w-11 place-items-center rounded-2xl glass-strong text-emerald shadow-md">
               <Landmark className="h-5 w-5" />
             </span>

@@ -29,8 +29,8 @@ export function About() {
         <Reveal className="relative order-2 lg:order-1">
           <div className="group relative aspect-[4/3] overflow-hidden rounded-[2rem] glass shadow-lg">
             <Image
-              src="/assets/about-real-drone.png"
-              alt="High resolution realistic agricultural hexacopter spraying drone operating in Indian farmland"
+              src="/assets/home-drone-operator.webp"
+              alt="Agricultural drone operator preparing equipment beside an Indian paddy field"
               fill
               sizes="(max-width: 1024px) 92vw, 45vw"
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"

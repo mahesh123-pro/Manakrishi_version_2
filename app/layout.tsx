@@ -99,6 +99,7 @@ export default function RootLayout({
   return (
     <html lang="en" data-theme="light" suppressHydrationWarning>
       <body className={`${outfit.variable} ${inter.variable} antialiased`}>
+        <noscript><style>{`.brand-preloader { display: none !important; }`}</style></noscript>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
