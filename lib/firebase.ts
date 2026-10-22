@@ -68,11 +68,11 @@ export interface BookingPayload {
  * mirror and Sheet POST are best-effort (they never block success), matching
  * the current site's behaviour.
  */
-export async function submitBooking(payload: BookingPayload): Promise<void> {
+export async function submitBooking(payload: BookingPayload): Promise<string> {
   const app = getPrimaryApp();
   const db = getFirestore(app);
 
-  await addDoc(collection(db, "bookings"), {
+  const booking = await addDoc(collection(db, "bookings"), {
     ...payload,
     timestamp: serverTimestamp(),
     status: "new",
@@ -95,6 +95,7 @@ export async function submitBooking(payload: BookingPayload): Promise<void> {
       body: JSON.stringify(payload),
     }).catch(() => {});
   }
+  return booking.id;
 }
 
 export interface DeletionRequest {

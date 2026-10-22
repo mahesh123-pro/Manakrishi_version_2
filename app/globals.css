@@ -367,3 +367,9 @@ select option { background: white; color: #1c3929; }
   .fullscreen-home-hero, .fullscreen-home-hero .hero-overlaid { min-height: max(740px, calc(100svh - 88px)); }
 }
 @media (prefers-reduced-motion: reduce) { .hero-slow-zoom { animation: none; } }
+
+/* Keep service photography visible at every booking screen size. */
+@media (max-width: 639px) {
+  .booking-service { display: block; }
+  .booking-service > div:first-child { height: auto; min-height: 0; aspect-ratio: 16 / 8; }
+}

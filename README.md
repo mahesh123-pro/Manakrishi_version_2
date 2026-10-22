@@ -100,3 +100,15 @@ The viewer loads near the viewport and stops continuous rendering when off-scree
 The homepage hero fills the viewport with a four-slide background: three photographs shown for nine seconds each, followed by a silent 15-second MP4 photo reel. Slides crossfade over 1.8 seconds. Pause/play, previous/next and individual slide controls are provided. Rotation and video playback pause off-screen, when the tab is hidden, or while keyboard focus is in the carousel controls. Reduced-motion preferences disable automatic rotation until the visitor explicitly starts it. The MP4 loads when its slide is reached. The reel animates generated photographs; it is not generated flight footage.
 
 Image prompts are saved in `public/assets/homepage-image-prompts.md`. The reel recipe and source notes are in `public/videos/README.md`; its reproducible FFmpeg script is `scripts/create-homepage-reel.cjs`. No video-generation account is connected. Replacing the photo reel with generated motion footage requires a video provider connection, such as Runway.
+
+## Razorpay booking advances
+
+Bookings are saved to the existing Firebase pipeline before optional payment. The success screen displays the Firestore booking reference and offers Razorpay Checkout when configured. The advance is a fixed, server-configured amount credited toward the final service bill; the indicative acreage estimate is never charged automatically. Agree your advance and cancellation/refund policy before enabling live payments.
+
+Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` and `RAZORPAY_BOOKING_ADVANCE_PAISE` in the server environment (see `.env.example`). Start with Razorpay test keys. A blank or invalid configuration disables checkout while keeping booking requests available. Restart/redeploy after setting variables. Never expose the secret in a `NEXT_PUBLIC_` variable. Configure automatic capture in the Razorpay Dashboard.
+
+The server creates INR orders, signs a checkout token, verifies the checkout signature and fetches the order/payment from Razorpay to match amount, currency and booking reference. Only a captured payment displays as received. Authorized payments remain pending. A failed verification offers a status retry against the same payment, rather than starting a second charge. Closing checkout keeps the booking request. A new checkout uses the existing order during that page session.
+
+Razorpay is the durable payment ledger: each order has `notes.booking_id` and a `booking_<id>` receipt. Reconcile payments against the matching Firestore document in the Razorpay Dashboard. Firebase booking records are not marked paid by the browser. If the page closes before verification, use the booking/payment references to reconcile in the Dashboard before requesting another payment. This version does not add a Firebase payment ledger or webhook-driven reconciliation; add an authenticated server-side database integration if automated dispatch must depend on payment status.
+
+Before live use, exercise test-mode checkout success, failure, cancellation and pending capture; confirm the order notes point to the saved booking. No live payment was submitted during implementation.

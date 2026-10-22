@@ -13,7 +13,6 @@ import { SupportSchemes } from "@/components/sections/SupportSchemes";
 import { Benefits } from "@/components/sections/Benefits";
 import { DashboardPreview } from "@/components/sections/DashboardPreview";
 import { BookingShowcase } from "@/components/sections/BookingShowcase";
-import { IndiaMap } from "@/components/sections/IndiaMap";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Roadmap } from "@/components/sections/Roadmap";
 import { Faq } from "@/components/sections/Faq";
@@ -37,7 +36,6 @@ export default function Home() {
       <Benefits />
       <DashboardPreview />
       <BookingShowcase />
-      <IndiaMap />
       <Testimonials />
       <Roadmap />
       <Faq />
