@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:booking": "node --test tests/booking.test.mjs"
+    "test:booking": "node --test tests/booking.test.mjs",
+    "test:marketplace": "node --experimental-transform-types --test tests/marketplace.test.mjs",
+    "marketplace:admin": "node --experimental-transform-types scripts/marketplace-admin.mjs",
+    "test:marketplace:http": "node --experimental-transform-types tests/marketplace-http.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",
@@ -21,6 +24,7 @@
     "next": "^15.5.21",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "sharp": "^0.34.5",
     "three": "^0.180.0"
   },
   "devDependencies": {
@@ -31,5 +35,8 @@
     "@types/three": "^0.180.0",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=24.0.0 <25"
   }
 }

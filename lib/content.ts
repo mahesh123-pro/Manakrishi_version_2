@@ -50,6 +50,7 @@ export const SITE = {
 } as const;
 
 export const NAV_LINKS: { key: string; href: string }[] = [
+  { key: "nav.marketplace", href: "/marketplace" },
   { key: "nav.tech", href: "#technology" },
   { key: "nav.how", href: "#how-it-works" },
   { key: "nav.services", href: "#services" },

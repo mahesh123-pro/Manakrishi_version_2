@@ -13,6 +13,7 @@ export function tl(value: Localized, locale: Locale): string {
  * high-visibility strings (nav, hero, section titles, CTAs, stat labels).
  */
 export const dict: Record<string, Localized> = {
+  "nav.marketplace": { en: "Marketplace", te: "రైతు మార్కెట్" },
   // Brand
   "brand.name": { en: "Manakrishi", te: "మనకృషి" },
   "brand.tagline": { en: "The Future of Farming", te: "వ్యవసాయ భవిష్యత్తు" },

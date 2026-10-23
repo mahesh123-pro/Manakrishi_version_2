@@ -15,7 +15,7 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const hrefFor = (href: string) => pathname === "/" ? href : `/${href}`;
+  const hrefFor = (href: string) => href.startsWith("/") ? href : pathname === "/" ? href : `/${href}`;
 
   useEffect(() => {
     if (!open) return;
@@ -49,7 +49,7 @@ export function Nav() {
           <Image src="/assets/manakrishi-logo.png" alt="" width={44} height={44} priority className="h-11 w-11 object-contain" />
           <span className="font-heading text-2xl font-semibold tracking-tight">Mana<span className="text-emerald">krishi</span><span className="mt-0.5 block text-[9px] font-medium uppercase tracking-[0.2em] text-muted">{t("brand.tagline")}</span></span>
         </Link>
-        <div className="hidden items-center gap-6 xl:flex">
+        <div className="hidden items-center gap-4 xl:flex">
           {NAV_LINKS.map((link) => <a key={link.key} href={hrefFor(link.href)} className="text-[13px] font-medium text-muted transition-colors hover:text-green">{t(link.key)}</a>)}
         </div>
         <div className="flex items-center gap-3">

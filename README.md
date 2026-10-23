@@ -112,3 +112,7 @@ The server creates INR orders, signs a checkout token, verifies the checkout sig
 Razorpay is the durable payment ledger: each order has `notes.booking_id` and a `booking_<id>` receipt. Reconcile payments against the matching Firestore document in the Razorpay Dashboard. Firebase booking records are not marked paid by the browser. If the page closes before verification, use the booking/payment references to reconcile in the Dashboard before requesting another payment. This version does not add a Firebase payment ledger or webhook-driven reconciliation; add an authenticated server-side database integration if automated dispatch must depend on payment status.
 
 Before live use, exercise test-mode checkout success, failure, cancellation and pending capture; confirm the order notes point to the saved booking. No live payment was submitted during implementation.
+
+## Agricultural marketplace
+
+The new `/marketplace` extension includes farmer listings, crop discovery, buyer carts and purchase requests, order management and administrator review. Marketplace storage uses Node 24 SQLite on a persistent disk; it does not replace Firebase service bookings. See [Marketplace setup, schema, API and deployment requirements](docs/marketplace.md) before hosting. No live stock or test accounts are seeded.

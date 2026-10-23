@@ -54,6 +54,7 @@ export function Footer() {
             {t("footer.quick")}
           </h4>
           {[
+            { label: t("nav.marketplace"), href: "/marketplace" },
             { label: t("nav.tech"), href: "/#technology" },
             { label: t("nav.how"), href: "/#how-it-works" },
             { label: t("nav.services"), href: "/#services" },

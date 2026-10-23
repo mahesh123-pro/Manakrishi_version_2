@@ -1,0 +1,76 @@
+import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { mkdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+
+let connection: DatabaseSync | undefined;
+export function db() {
+  if (connection) return connection;
+  if (
+    process.env.NODE_ENV === "production" &&
+    !process.env.MARKETPLACE_DATA_DIR
+  )
+    throw new Error(
+      "MARKETPLACE_DATA_DIR must point to a persistent volume in production.",
+    );
+  const file = resolve(
+    process.env.MARKETPLACE_DATA_DIR || ".marketplace",
+    "marketplace.sqlite",
+  );
+  mkdirSync(dirname(file), { recursive: true });
+  connection = new DatabaseSync(file, { timeout: 5000 });
+  connection.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
+    CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('buyer','farmer','admin')), verified INTEGER NOT NULL DEFAULT 0, suspended INTEGER NOT NULL DEFAULT 0, village TEXT NOT NULL DEFAULT '', district TEXT NOT NULL DEFAULT '', state TEXT NOT NULL DEFAULT '', bio TEXT NOT NULL DEFAULT '', photo TEXT NOT NULL DEFAULT '', publicContact TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), expires INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS listings(id TEXT PRIMARY KEY, sellerId TEXT NOT NULL REFERENCES users(id), crop TEXT NOT NULL, category TEXT NOT NULL, price INTEGER NOT NULL CHECK(price>=0), unit TEXT NOT NULL, quantity INTEGER NOT NULL CHECK(quantity>=0), minimum INTEGER NOT NULL CHECK(minimum>0), maximum INTEGER NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1, views INTEGER NOT NULL DEFAULT 0, moderation TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS listings_search ON listings(status,category,createdAt DESC);
+    CREATE INDEX IF NOT EXISTS listings_seller ON listings(sellerId,status);
+    CREATE INDEX IF NOT EXISTS listings_price ON listings(status,price);
+    CREATE INDEX IF NOT EXISTS listings_district ON listings(json_extract(data,'$.district'),status);
+    CREATE INDEX IF NOT EXISTS listings_state ON listings(json_extract(data,'$.state'),status);
+    CREATE TABLE IF NOT EXISTS images(id TEXT PRIMARY KEY, ownerId TEXT NOT NULL REFERENCES users(id), bytes BLOB NOT NULL, createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS cart(userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), quantity INTEGER NOT NULL, PRIMARY KEY(userId,listingId));
+    CREATE TABLE IF NOT EXISTS wishlist(userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), PRIMARY KEY(userId,listingId));
+    CREATE TABLE IF NOT EXISTS orders(id TEXT PRIMARY KEY, buyerId TEXT NOT NULL REFERENCES users(id), sellerId TEXT NOT NULL REFERENCES users(id), status TEXT NOT NULL, total INTEGER NOT NULL, data TEXT NOT NULL, requestKey TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL, expiresAt TEXT NOT NULL, UNIQUE(buyerId,requestKey,sellerId));
+    CREATE INDEX IF NOT EXISTS orders_buyer ON orders(buyerId,createdAt DESC);
+    CREATE INDEX IF NOT EXISTS orders_seller ON orders(sellerId,status);
+    CREATE TABLE IF NOT EXISTS order_items(orderId TEXT NOT NULL REFERENCES orders(id), listingId TEXT NOT NULL REFERENCES listings(id), quantity INTEGER NOT NULL, snapshot TEXT NOT NULL, PRIMARY KEY(orderId,listingId));
+    CREATE TABLE IF NOT EXISTS enquiries(id TEXT PRIMARY KEY, listingId TEXT NOT NULL REFERENCES listings(id), buyerId TEXT NOT NULL REFERENCES users(id), sellerId TEXT NOT NULL REFERENCES users(id), message TEXT NOT NULL, reply TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS reports(id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), reason TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', resolution TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS notifications(id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), message TEXT NOT NULL, href TEXT NOT NULL, createdAt TEXT NOT NULL, seen INTEGER NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, actorId TEXT NOT NULL, action TEXT NOT NULL, targetId TEXT NOT NULL, detail TEXT NOT NULL, createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+    INSERT OR IGNORE INTO migrations VALUES (1,datetime('now'));`);
+  return connection;
+}
+export function all<T>(sql: string, ...args: SQLInputValue[]): T[] {
+  return db()
+    .prepare(sql)
+    .all(...args) as unknown as T[];
+}
+export function one<T>(sql: string, ...args: SQLInputValue[]): T | undefined {
+  return db()
+    .prepare(sql)
+    .get(...args) as unknown as T | undefined;
+}
+export function run(sql: string, ...args: SQLInputValue[]) {
+  return db()
+    .prepare(sql)
+    .run(...args);
+}
+export function transaction<T>(fn: () => T): T {
+  db().exec("BEGIN IMMEDIATE");
+  try {
+    const result = fn();
+    db().exec("COMMIT");
+    return result;
+  } catch (error) {
+    db().exec("ROLLBACK");
+    throw error;
+  }
+}
+export function closeDb() {
+  connection?.close();
+  connection = undefined;
+}

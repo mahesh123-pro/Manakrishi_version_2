@@ -32,3 +32,4 @@ next-env.d.ts
 
 # reference material (previous static site) — not part of the build
 /previous website files
+/.marketplace/
