@@ -6,7 +6,9 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
 if (process.env.DATABASE_URL && process.env.MARKETPLACE_TEST_DATABASE !== "1")
-  throw new Error("Use an isolated database branch and set MARKETPLACE_TEST_DATABASE=1; never run fixtures on production.");
+  throw new Error(
+    "Use an isolated database branch and set MARKETPLACE_TEST_DATABASE=1; never run fixtures on production.",
+  );
 const dir = mkdtempSync(join(tmpdir(), "mk-market-http-"));
 process.env.MARKETPLACE_DATA_DIR = dir;
 const { run, closeDb } = await import("../lib/marketplace/db.ts");
@@ -78,6 +80,18 @@ try {
   }
   const admin = (await api("auth/login", { email: adminEmail, password }))
     .cookie;
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    const unauthenticated = await fetch(`${base}/api/admin/bookings`);
+    assert.equal(unauthenticated.status, 401);
+    const disconnected = await fetch(`${base}/api/admin/bookings`, {
+      headers: { Cookie: admin },
+    });
+    assert.equal(disconnected.status, 503);
+    assert.equal(
+      (await disconnected.json()).error,
+      "booking_backend_unconfigured",
+    );
+  }
   const farmer = (
     await api("auth/register", {
       name: "HTTP fixture farmer",
@@ -94,6 +108,11 @@ try {
       role: "buyer",
     })
   ).cookie;
+  assert.equal(
+    (await fetch(`${base}/api/admin/bookings`, { headers: { Cookie: buyer } }))
+      .status,
+    403,
+  );
   const stranger = (
     await api("auth/register", {
       name: "HTTP fixture stranger",
@@ -244,6 +263,38 @@ try {
     admin,
   );
   assert.equal((await api("rules")).data.rules, "Fixture rule");
+  const overview = (await api("admin", undefined, admin)).data;
+  assert(overview.enquiries.some((e) => e.id === enquiry.id));
+  await api(
+    "admin",
+    { id: enquiry.id, action: "reply-enquiry", reply: "Admin support reply" },
+    buyer,
+    403,
+  );
+  await api(
+    "admin",
+    { id: enquiry.id, action: "reply-enquiry", reply: "Admin support reply" },
+    admin,
+  );
+  assert.equal(
+    (await api("enquiries", undefined, buyer)).data.items[0].reply,
+    "Admin support reply",
+  );
+  await api(
+    "admin",
+    { id, action: "unpublish", reason: "Fixture quality check" },
+    admin,
+  );
+  await api(`product/${id}`, undefined, "", 404);
+  assert.equal(
+    (await api(`product/${id}`, undefined, admin)).data.listing.status,
+    "paused",
+  );
+  await api(
+    "admin",
+    { id, action: "approve", reason: "Fixture check completed" },
+    admin,
+  );
   for (const path of [
     "/",
     "/book",
@@ -256,6 +307,7 @@ try {
     "/marketplace/my-listings",
     "/marketplace/wishlist",
     "/admin/marketplace",
+    "/admin",
     `/marketplace/product/${id}`,
   ]) {
     const response = await fetch(base + path);

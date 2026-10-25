@@ -270,7 +270,7 @@ const listingQuery =
   "SELECT l.*,u.name seller,u.verified FROM listings l JOIN users u ON u.id=l.sellerId";
 export async function getListing(id: string, user?: User | null) {
   const row = await one<Row>(
-    `${listingQuery} WHERE l.id=? AND u.suspended=0`,
+    `${listingQuery} WHERE l.id=? ${user?.role === "admin" ? "" : "AND u.suspended=0"}`,
     id,
   );
   requireValue(
@@ -772,7 +772,20 @@ export async function moderate(user: User, input: Record<string, unknown>) {
     const id = text(input.id, 100, true);
     const action = text(input.action);
     const reason = text(input.reason ?? "", 500);
-    if (["approve", "reject", "corrections"].includes(action)) {
+    if (action === "reply-enquiry") {
+      const enquiry = await one<{ buyerId: string; sellerId: string }>(
+        "SELECT buyerId,sellerId FROM enquiries WHERE id=?",
+        id,
+      );
+      requireValue(enquiry, "not_found", 404);
+      const reply = text(input.reply, 1000, true);
+      await run("UPDATE enquiries SET reply=? WHERE id=?", reply, id);
+      await notify(enquiry.buyerId, "enquiry_reply", "/marketplace/orders");
+      await notify(enquiry.sellerId, "enquiry_reply", "/marketplace/orders");
+      await audit(user, "admin.reply-enquiry", id, reply);
+      return;
+    }
+    if (["approve", "reject", "corrections", "unpublish"].includes(action)) {
       const l = await getListing(id, user);
       requireValue(l.status !== "deleted", "invalid_transition");
       requireValue(
@@ -792,11 +805,13 @@ export async function moderate(user: User, input: Record<string, unknown>) {
         );
       }
       const status =
-        action === "approve"
-          ? "published"
-          : action === "reject"
-            ? "rejected"
-            : "corrections";
+        action === "unpublish"
+          ? "paused"
+          : action === "approve"
+            ? "published"
+            : action === "reject"
+              ? "rejected"
+              : "corrections";
       await run(
         "UPDATE listings SET status=?,moderation=?,version=version+1 WHERE id=?",
         status,
@@ -838,10 +853,19 @@ export async function adminOverview(user: User) {
         `${listingQuery} WHERE l.status!='deleted' ORDER BY l.createdAt DESC`,
       )
     ).map((r) => listingFrom(r, true)),
-    users: await all("SELECT id,name,email,role,verified,suspended FROM users"),
-    reports: await all("SELECT * FROM reports ORDER BY createdAt DESC"),
+    users: await all(
+      "SELECT id,name,email,role,verified,suspended,village,district,state,createdAt FROM users ORDER BY createdAt DESC",
+    ),
+    reports: await all(
+      "SELECT r.*,l.crop,u.name reporter FROM reports r JOIN listings l ON l.id=r.listingId JOIN users u ON u.id=r.userId ORDER BY r.createdAt DESC",
+    ),
+    enquiries: await all(
+      "SELECT e.*,l.crop,b.name buyer,s.name seller FROM enquiries e JOIN listings l ON l.id=e.listingId JOIN users b ON b.id=e.buyerId JOIN users s ON s.id=e.sellerId ORDER BY e.createdAt DESC",
+    ),
     orders: await orders(user),
-    audit: await all("SELECT * FROM audit ORDER BY id DESC LIMIT 100"),
+    audit: await all(
+      "SELECT a.*,u.name actor FROM audit a LEFT JOIN users u ON u.id=a.actorId ORDER BY a.id DESC LIMIT 100",
+    ),
     metrics: {
       active: (await one<{
         n: number;

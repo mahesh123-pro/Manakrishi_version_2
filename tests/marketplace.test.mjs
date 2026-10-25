@@ -7,7 +7,9 @@ import { randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 if (process.env.DATABASE_URL && process.env.MARKETPLACE_TEST_DATABASE !== "1")
-  throw new Error("Use an isolated database branch and set MARKETPLACE_TEST_DATABASE=1; never run fixtures on production.");
+  throw new Error(
+    "Use an isolated database branch and set MARKETPLACE_TEST_DATABASE=1; never run fixtures on production.",
+  );
 const folder = mkdtempSync(join(tmpdir(), "manakrishi-market-test-"));
 process.env.MARKETPLACE_DATA_DIR = folder;
 const { one, run, closeDb } = await import("../lib/marketplace/db.ts");
@@ -382,4 +384,70 @@ test("multi-seller checkout is atomic and snapshots each seller separately", asy
   );
   assert.equal((await m.getListing(first.id)).quantity, 18);
   assert.equal((await m.getListing(second.id)).quantity, 16);
+});
+
+test("admin workflow: queue overview, unpublish, enquiry replies and access boundaries", async () => {
+  const l = await listing({ quantity: 15 });
+  await assert.rejects(() => m.adminOverview(buyer), /forbidden/);
+  await assert.rejects(
+    () => m.moderate(buyer, { id: l.id, action: "unpublish", reason: "Test" }),
+    /forbidden/,
+  );
+  await assert.rejects(
+    () => m.moderate(admin, { id: l.id, action: "unpublish", reason: "" }),
+    /reason_required/,
+  );
+  await m.moderate(admin, {
+    id: l.id,
+    action: "unpublish",
+    reason: "Quality review requested",
+  });
+  await assert.rejects(() => m.getListing(l.id), /not_found/);
+  assert.equal((await m.getListing(l.id, admin)).status, "paused");
+  await m.moderate(admin, {
+    id: farmer.id,
+    action: "suspend",
+    reason: "Test review",
+  });
+  assert.equal((await m.getListing(l.id, admin)).id, l.id);
+  await m.moderate(admin, {
+    id: farmer.id,
+    action: "unsuspend",
+    reason: "Review finished",
+  });
+  const id = randomUUID();
+  await run(
+    "INSERT INTO enquiries(id,listingId,buyerId,sellerId,message,createdAt) VALUES(?,?,?,?,?,?)",
+    id,
+    l.id,
+    buyer.id,
+    farmer.id,
+    "Can I collect tomorrow?",
+    new Date().toISOString(),
+  );
+  await assert.rejects(
+    () =>
+      m.moderate(buyer, { id, action: "reply-enquiry", reply: "Unauthorized" }),
+    /forbidden/,
+  );
+  await assert.rejects(
+    () => m.moderate(admin, { id, action: "reply-enquiry", reply: "" }),
+    /invalid_fields/,
+  );
+  await m.moderate(admin, {
+    id,
+    action: "reply-enquiry",
+    reply: "Please agree collection with the farmer.",
+  });
+  const overview = await m.adminOverview(admin);
+  assert.equal(
+    overview.enquiries.find((e) => e.id === id).reply,
+    "Please agree collection with the farmer.",
+  );
+  assert(
+    overview.audit.some(
+      (a) => a.action === "admin.reply-enquiry" && a.targetId === id,
+    ),
+  );
+  assert(overview.users.some((u) => u.id === farmer.id));
 });

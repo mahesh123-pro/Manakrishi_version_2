@@ -1,7 +1,7 @@
 import { MarketProvider } from "@/components/marketplace/MarketProvider";
-import { Admin } from "@/components/marketplace/Manage";
+import { Admin } from "@/components/marketplace/Admin";
 export const metadata = {
-  title: "Marketplace administration",
+  title: "Admin workspace",
   robots: { index: false, follow: false },
 };
 export default function Page() {

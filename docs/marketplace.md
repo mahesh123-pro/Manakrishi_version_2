@@ -117,3 +117,21 @@ The managed database migration was verified on an isolated Neon branch with both
 ### Testing Postgres safely
 
 Create an isolated database branch, migrate it, and supply its DATABASE_URL together with MARKETPLACE_TEST_DATABASE=1 when running either marketplace test suite. Tests refuse a Postgres URL without that explicit flag. Fixture data remains on that validation branch; the HTTP suite removes only its temporary local directory. Never use a production connection for these tests.
+
+## Admin workspace
+
+Open /admin (redirects to /admin/marketplace) after signing in with a provisioned administrator account. The workspace includes an overview and attention queues, searchable/filterable crop reviews and accounts, order progression, conversations, report resolution, settings and the latest 100 audit events. Record lists render in groups of 20.
+
+Approvals, corrections, rejections and unpublishing use review dialogs. Admins can verify or suspend accounts, resolve reports, reply to buyer/farmer conversations and progress orders using the existing server-validated transitions. Cancel/reject releases stock exactly once; public crop details and images remain hidden when unpublished. Suspended sellers' crop details remain inspectable by admins only. Admin actions remain role-checked server-side. Credentials and role elevation are never offered through public registration.
+
+The overview reports actual request/delivered values, not payment receipts or revenue. Admin credentials generated during setup stay in the ignored .marketplace folder; never commit them.
+
+### Service booking administration
+
+The Service bookings tab reads the existing primary Firestore bookings collection through the server-only Firebase Admin SDK. Configure FIREBASE_SERVICE_ACCOUNT_JSON as a Vercel production Secret using a service account authorized for this project's Firestore reads/writes. Set FIREBASE_BOOKINGS_PROJECT_ID to manakrishi-booking (or rely on the existing NEXT_PUBLIC_FB_PROJECT_ID). The account project must match; no personal Google credential is reused. Never commit the JSON or prefix it with NEXT_PUBLIC_. Redeploy after configuration. Without it, the tab shows a setup message while normal booking submissions remain available.
+
+GET /api/admin/bookings returns 50 records plus an ID cursor. Filters/search apply to loaded records; load more to expand the search. Both GET and POST require a marketplace administrator session. POST validates origin, bounded body, rate limit, expected prior status, reason, operator details and schedule. Firestore transactions update status/adminDispatch and append booking_admin_audit together. Stale updates fail with 409. New → confirmed → assigned → in_progress → completed; eligible active jobs can be cancelled; completed/cancelled jobs cannot be reopened. Original customer fields are preserved. Historical unknown status values are read-only.
+
+Booking administration updates primary Firestore records only. Existing RTDB/Sheets submission mirrors and WhatsApp automation are not changed or automatically synchronized by these actions. Dispatch updates do not send messages or trigger Razorpay captures/refunds; reconcile advances separately before cancellation. Configure audit collection access rules to deny public client writes/reads; use the server credential.
+
+Validation: npm run test:admin-booking checks assignment requirements, schedule validation, terminal states and forbidden shortcuts. The HTTP suite checks admin-only booking endpoint access and explicit missing-credential handling. Real Firestore operations must also be verified after credentials are configured; no live customer bookings are changed during the disconnected checks.
