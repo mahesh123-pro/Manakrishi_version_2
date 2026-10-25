@@ -7,11 +7,13 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{
+    id: string;
+  }>;
 }): Promise<Metadata> {
   const { id } = await params;
   try {
-    const l = getListing(id);
+    const l = await getListing(id);
     return {
       title: `${l.crop} ${l.variety} | ${l.district}`,
       description: `${l.crop} from ${l.seller} in ${l.district}, ${l.state}. ${l.quantity} ${l.unit} available.`,
@@ -25,12 +27,14 @@ export async function generateMetadata({
 export default async function Page({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{
+    id: string;
+  }>;
 }) {
   const { id } = await params;
   let structured = null;
   try {
-    const l = getListing(id);
+    const l = await getListing(id);
     structured = {
       "@context": "https://schema.org",
       "@type": "Product",

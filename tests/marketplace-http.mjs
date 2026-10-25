@@ -5,14 +5,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
-
+if (process.env.DATABASE_URL && process.env.MARKETPLACE_TEST_DATABASE !== "1")
+  throw new Error("Use an isolated database branch and set MARKETPLACE_TEST_DATABASE=1; never run fixtures on production.");
 const dir = mkdtempSync(join(tmpdir(), "mk-market-http-"));
 process.env.MARKETPLACE_DATA_DIR = dir;
 const { run, closeDb } = await import("../lib/marketplace/db.ts");
 const { hashPassword } = await import("../lib/marketplace/auth.ts");
 const adminEmail = `admin-${randomUUID()}@example.test`,
   password = "test-http-long-password";
-run(
+await run(
   "INSERT INTO users(id,email,password,name,role,createdAt) VALUES(?,?,?,?,?,?)",
   randomUUID(),
   adminEmail,
@@ -21,7 +22,7 @@ run(
   "admin",
   new Date().toISOString(),
 );
-closeDb();
+await closeDb();
 const port = Number(process.env.MARKETPLACE_TEST_PORT || 3107),
   base = `http://localhost:${port}`;
 const server = spawn(

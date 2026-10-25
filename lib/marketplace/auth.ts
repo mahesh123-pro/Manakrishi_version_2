@@ -24,15 +24,14 @@ export function requireValue(
 ): asserts condition {
   if (!condition) throw new MarketError(code, status);
 }
-export function limit(key: string, max = 40, seconds = 60) {
-  transaction(() => {
-    run("DELETE FROM rate_limits WHERE expires < ?", Date.now());
-    const row = one<{ count: number }>(
-      "SELECT count FROM rate_limits WHERE key=?",
-      key,
-    );
+export async function limit(key: string, max = 40, seconds = 60) {
+  await transaction(async () => {
+    await run("DELETE FROM rate_limits WHERE expires < ?", Date.now());
+    const row = await one<{
+      count: number;
+    }>("SELECT count FROM rate_limits WHERE key=?", key);
     requireValue(!row || row.count < max, "rate_limit", 429);
-    run(
+    await run(
       "INSERT INTO rate_limits VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1",
       key,
       Date.now() + seconds * 1000,
@@ -50,20 +49,20 @@ export async function passwordMatches(password: string, stored: string) {
 }
 export const tokenHash = (value: string) =>
   createHash("sha256").update(value).digest("hex");
-export function sessionUser(token?: string): User | null {
+export async function sessionUser(token?: string): Promise<User | null> {
   if (!token) return null;
   return (
-    one<User>(
+    (await one<User>(
       "SELECT u.id,u.email,u.name,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.bio,u.photo,u.publicContact FROM users u JOIN sessions s ON s.userId=u.id WHERE s.hash=? AND s.expires>? AND u.suspended=0",
       tokenHash(token),
       Date.now(),
-    ) || null
+    )) || null
   );
 }
-export function newSession(userId: string) {
+export async function newSession(userId: string) {
   const token = randomBytes(32).toString("hex");
-  run("DELETE FROM sessions WHERE expires<?", Date.now());
-  run(
+  await run("DELETE FROM sessions WHERE expires<?", Date.now());
+  await run(
     "INSERT INTO sessions VALUES(?,?,?)",
     tokenHash(token),
     userId,
@@ -93,7 +92,7 @@ export async function register(input: Record<string, unknown>) {
   const hash = await hashPassword(password);
   const id = randomUUID();
   try {
-    run(
+    await run(
       "INSERT INTO users(id,email,password,name,role,createdAt) VALUES(?,?,?,?,?,?)",
       id,
       email,
@@ -105,7 +104,7 @@ export async function register(input: Record<string, unknown>) {
   } catch {
     throw new MarketError("account_exists", 409);
   }
-  return newSession(id);
+  return await newSession(id);
 }
 export async function login(input: Record<string, unknown>) {
   const email = String(input.email || "")
@@ -113,12 +112,13 @@ export async function login(input: Record<string, unknown>) {
     .toLowerCase();
   const password = String(input.password || "");
   requireValue(password.length <= 128, "invalid_login", 401);
-  const user = one<{ id: string; password: string; suspended: number }>(
-    "SELECT id,password,suspended FROM users WHERE email=?",
-    email,
-  );
+  const user = await one<{
+    id: string;
+    password: string;
+    suspended: number;
+  }>("SELECT id,password,suspended FROM users WHERE email=?", email);
   const fallback = "00000000000000000000000000000000:" + "0".repeat(128);
   const valid = await passwordMatches(password, user?.password || fallback);
   requireValue(user && valid && !user.suspended, "invalid_login", 401);
-  return newSession(user.id);
+  return await newSession(user.id);
 }

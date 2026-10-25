@@ -4,9 +4,11 @@
 
 This extends the existing Next.js 15 / React 19 app. Firebase Firestore, Realtime Database and Google Sheets service-booking writes remain intact. The prior website had no login or operational farmer/admin dashboard; the existing dashboard section is a marketing preview. Marketplace accounts are a new, separate system.
 
-The marketplace runs on Node 24 with its built-in SQLite driver and a persistent local volume. Sharp, already present through Next.js, is now an explicit dependency for sanitizing uploaded images. `lib/marketplace/db.ts` automatically applies the initial, versioned schema and creates the database in `MARKETPLACE_DATA_DIR/marketplace.sqlite`. Development defaults to `.marketplace/`. Production fails closed if `MARKETPLACE_DATA_DIR` is missing. That directory and its WAL/SHM files contain personal information and must never be committed or served statically.
+The marketplace uses durable Postgres on Neon for Vercel production. Server-only DATABASE_URL selects Postgres; local development without it uses Node 24 SQLite in MARKETPLACE_DATA_DIR (default .marketplace/). Vercel explicitly refuses the SQLite fallback. Images are stored as sanitized WebP bytea records in Postgres, with the same owner/admin and published-listing access checks as before. No uploads or personal data depend on Vercel's temporary filesystem.
 
-**Deployment requirement:** use one Node host with a persistent volume, or processes sharing a supported local filesystem. An ephemeral filesystem, static hosting, Edge runtime, or independently replicated serverless instances will not preserve or coordinate this SQLite database. Do not deploy this storage implementation to ordinary Vercel serverless functions. For that hosting model, migrate the marketplace repository to a managed transactional database and object storage first. Booking Firebase configuration is not a server-side marketplace database credential.
+The pg pool uses Vercel's attachDatabasePool lifecycle integration. Every marketplace transaction runs on one checked-out connection and a shared transaction-scoped advisory lock. This preserves the previous single-writer semantics across Vercel instances, including stock reservations, order expiry and idempotency. This is intentionally conservative; the global transaction lock can become a throughput bottleneck at higher traffic.
+
+Schema migration is explicit and versioned in lib/marketplace/schema-postgres.ts. Run npm run marketplace:migrate with MARKETPLACE_MIGRATION_DATABASE_URL set to the direct connection string before deploying, and configure a pooled DATABASE_URL for application traffic. The migration is additive and runs in a transaction; it does not copy local SQLite accounts or stock automatically. Never point tests at production. Use an isolated database branch for tests.
 
 This is a purchase-request marketplace. Checkout reserves inventory and asks each farmer to confirm. It does not collect marketplace payments or assume cash on delivery, delivery pricing, tax treatment or platform fees. Buyers and farmers agree those terms directly before payment. Existing Razorpay integration continues to apply only to service-booking advances. There is no marketplace refund or payment-success state to falsely trust.
 
@@ -15,7 +17,7 @@ This is a purchase-request marketplace. Checkout reserves inventory and asks eac
 1. Use Node 24 and `npm install`.
 2. Keep existing booking environment settings in `.env.local`.
 3. Development: `npm run dev`; open `/marketplace`.
-4. For a production preview set `MARKETPLACE_DATA_DIR` to an absolute persistent directory in the process environment, run `npm run build`, then `npm run start`.
+4. On Vercel, configure DATABASE_URL, run marketplace:migrate against the direct connection, then deploy. For a local SQLite production preview set `MARKETPLACE_DATA_DIR` to an absolute persistent directory in the process environment, run `npm run build`, then `npm run start`.
 5. If behind a reverse proxy set `MARKETPLACE_ORIGIN` to the exact HTTPS public origin. Configure forwarded host handling correctly. Cookies are Secure in production except an HTTP localhost development preview.
 
 PowerShell production-preview example:
@@ -95,13 +97,13 @@ Buyer address and phone are visible only to the order buyer, that seller and adm
 
 ## Integrations and remaining production work
 
-Implemented: persisted marketplace operations, local image storage, account sessions, in-app notifications, moderation, stock reservation and purchase requests.
+Implemented: persisted marketplace operations, durable database image storage, account sessions, in-app notifications, moderation, stock reservation and purchase requests.
 
 Not connected: marketplace Razorpay payments/webhooks/refunds; courier/delivery quotes; tax calculation; SMS, WhatsApp, email or push delivery; email verification, self-service password reset, MFA and external identity providers. There are no customer reviews or fake rating widgets. Farmer contact/profile fields are user-supplied; administrator verification must be a real operational process.
 
-Before public rollout: choose and provision a supported persistent host or migrate storage, establish backup/restore and schema-upgrade procedures, review data retention/deletion, add email verification/account recovery and abuse controls, configure TLS and deployment secrets, define support/refund/fulfillment policies, and validate mobile browser layouts. Admin category/unit controls enable or disable existing supported options; arbitrary new unit conversions, bulk-discount rules and category taxonomy editing require a future schema/UI extension. Runtime order expiry may be moved to a scheduled job when timely unattended release is required.
+Before public rollout: establish backup/restore and schema-upgrade procedures, review data retention/deletion, add email verification/account recovery and abuse controls, configure TLS and deployment secrets, define support/refund/fulfillment policies, and validate mobile browser layouts. Admin category/unit controls enable or disable existing supported options; arbitrary new unit conversions, bulk-discount rules and category taxonomy editing require a future schema/UI extension. Runtime order expiry may be moved to a scheduled job when timely unattended release is required.
 
-The browser automation runtime failed to initialize in this session. HTTP and automated tests do not replace visual/mobile interaction testing; those limitations are reported separately in the delivery summary.
+The managed database migration was verified on an isolated Neon branch with both the service suite and full HTTP workflow. Browser checks cover the public catalogue, sample-crop search and generated crop imagery.
 
 ## Validation
 
@@ -111,3 +113,7 @@ The browser automation runtime failed to initialize in this session. HTTP and au
 - `npm run test:marketplace:http` after build: launches a second production server against a temporary database, uses fixture accounts/images, exercises actual API auth/upload/moderation/checkout/fulfillment, and checks route responses. The database is removed afterwards. No test fixtures are inserted into the development marketplace or Firebase bookings.
 
 `npm run lint` is the pre-existing interactive Next lint command and is not configured as a separate unattended check. No external messages or payment charges are sent by tests.
+
+### Testing Postgres safely
+
+Create an isolated database branch, migrate it, and supply its DATABASE_URL together with MARKETPLACE_TEST_DATABASE=1 when running either marketplace test suite. Tests refuse a Postgres URL without that explicit flag. Fixture data remains on that validation branch; the HTTP suite removes only its temporary local directory. Never use a production connection for these tests.

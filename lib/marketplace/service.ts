@@ -9,21 +9,20 @@ import {
   type User,
   type Order,
 } from "./types.ts";
-
 const now = () => new Date().toISOString();
-export function settings(): {
+export async function settings(): Promise<{
   disabledCategories: string[];
   disabledUnits: string[];
   rules: string;
-} {
-  const stored = one<{ value: string }>(
-    "SELECT value FROM settings WHERE key='marketplace'",
-  );
+}> {
+  const stored = await one<{
+    value: string;
+  }>("SELECT value FROM settings WHERE key='marketplace'");
   return stored
     ? JSON.parse(stored.value)
     : { disabledCategories: [], disabledUnits: [], rules: "" };
 }
-export function saveSettings(user: User, input: Record<string, unknown>) {
+export async function saveSettings(user: User, input: Record<string, unknown>) {
   requireValue(user.role === "admin", "forbidden", 403);
   requireValue(
     Array.isArray(input.disabledCategories) &&
@@ -41,12 +40,12 @@ export function saveSettings(user: User, input: Record<string, unknown>) {
     disabledUnits: input.disabledUnits,
     rules: text(input.rules ?? "", 2000),
   };
-  transaction(() => {
-    run(
+  await transaction(async () => {
+    await run(
       "INSERT INTO settings VALUES('marketplace',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value",
       JSON.stringify(value),
     );
-    audit(user, "settings.updated", "marketplace", JSON.stringify(value));
+    await audit(user, "settings.updated", "marketplace", JSON.stringify(value));
   });
 }
 export function text(value: unknown, max = 200, required = false) {
@@ -75,8 +74,8 @@ const milli = (v: number) => {
   );
   return Math.round(v * 1000);
 };
-export function notify(userId: string, message: string, href: string) {
-  run(
+export async function notify(userId: string, message: string, href: string) {
+  await run(
     "INSERT INTO notifications(id,userId,message,href,createdAt) VALUES(?,?,?,?,?)",
     randomUUID(),
     userId,
@@ -85,8 +84,13 @@ export function notify(userId: string, message: string, href: string) {
     now(),
   );
 }
-export function audit(user: User, action: string, target: string, detail = "") {
-  run(
+export async function audit(
+  user: User,
+  action: string,
+  target: string,
+  detail = "",
+) {
+  await run(
     "INSERT INTO audit(actorId,action,targetId,detail,createdAt) VALUES(?,?,?,?,?)",
     user.id,
     action,
@@ -95,11 +99,11 @@ export function audit(user: User, action: string, target: string, detail = "") {
     now(),
   );
 }
-export function validateListing(
+export async function validateListing(
   input: Record<string, unknown>,
   user: User,
   publish = true,
-): ListingInput {
+): Promise<ListingInput> {
   const field = (name: string, max = 200, mandatory = false) =>
     text(input[name] ?? "", max, publish && mandatory);
   const unit = field("unit") as keyof typeof UNITS;
@@ -109,7 +113,7 @@ export function validateListing(
     CATEGORIES.some((c) => c[0] === category),
     "invalid_category",
   );
-  const rules = settings();
+  const rules = await settings();
   requireValue(
     !publish || !rules.disabledCategories.includes(category),
     "invalid_category",
@@ -146,7 +150,7 @@ export function validateListing(
       (!publish || images.length >= 1),
     "images_required",
   );
-  images.forEach((image) => {
+  for (const image of images) {
     requireValue(
       typeof image === "string" &&
         /^\/api\/marketplace\/media\/[a-f0-9-]{36}$/.test(image),
@@ -154,10 +158,10 @@ export function validateListing(
     );
     const id = image.split("/").pop()!;
     requireValue(
-      one("SELECT id FROM images WHERE id=? AND ownerId=?", id, user.id),
+      await one("SELECT id FROM images WHERE id=? AND ownerId=?", id, user.id),
       "invalid_image",
     );
-  });
+  }
   const date = (name: string) => {
     const v = field(name, 10);
     requireValue(
@@ -264,8 +268,11 @@ export function listingFrom(row: Row, privateFields = false): Listing {
 }
 const listingQuery =
   "SELECT l.*,u.name seller,u.verified FROM listings l JOIN users u ON u.id=l.sellerId";
-export function getListing(id: string, user?: User | null) {
-  const row = one<Row>(`${listingQuery} WHERE l.id=? AND u.suspended=0`, id);
+export async function getListing(id: string, user?: User | null) {
+  const row = await one<Row>(
+    `${listingQuery} WHERE l.id=? AND u.suspended=0`,
+    id,
+  );
   requireValue(
     row &&
       (row.status === "published" ||
@@ -276,9 +283,9 @@ export function getListing(id: string, user?: User | null) {
   );
   return listingFrom(row, user?.id === row.sellerId || user?.role === "admin");
 }
-export function discover(params: URLSearchParams) {
-  expireOrders();
-  let rows = all<Row>(
+export async function discover(params: URLSearchParams) {
+  await expireOrders();
+  let rows = await all<Row>(
     `${listingQuery} WHERE l.status='published' AND l.quantity>=l.minimum AND u.suspended=0 ORDER BY l.createdAt DESC`,
   );
   const search = (params.get("q") || "").toLowerCase().slice(0, 200);
@@ -331,30 +338,32 @@ export function discover(params: URLSearchParams) {
   items = items.slice((page - 1) * 12, page * 12);
   return { items, count, page, hasMore: page * 12 < count };
 }
-export function saveListing(user: User, input: Record<string, unknown>) {
+export async function saveListing(user: User, input: Record<string, unknown>) {
   requireValue(
     user.role === "farmer" && !user.suspended,
     "farmer_required",
     403,
   );
   const publish = input.action === "publish";
-  const data = validateListing(input, user, publish);
-  return transaction(() => {
+  const data = await validateListing(input, user, publish);
+  return await transaction(async () => {
     const id = input.id ? text(input.id) : randomUUID();
-    const existing = one<Row>("SELECT * FROM listings WHERE id=?", id);
+    const existing = await one<Row>("SELECT * FROM listings WHERE id=?", id);
     requireValue(!input.id || existing?.sellerId === user.id, "forbidden", 403);
     if (existing) {
       requireValue(existing.version === input.version, "stale_listing", 409);
-      const outstanding = one<{ n: number }>(
+      const outstanding = (await one<{
+        n: number;
+      }>(
         "SELECT COUNT(*) n FROM order_items i JOIN orders o ON o.id=i.orderId WHERE i.listingId=? AND o.status NOT IN ('cancelled','rejected','delivered')",
         id,
-      )!.n;
+      ))!.n;
       requireValue(
         !outstanding || existing.unit === data.unit,
         "unit_locked",
         409,
       );
-      run(
+      await run(
         "UPDATE listings SET crop=?,category=?,price=?,unit=?,quantity=?,minimum=?,maximum=?,data=?,status=?,version=version+1,updatedAt=? WHERE id=?",
         data.crop,
         data.category,
@@ -369,7 +378,7 @@ export function saveListing(user: User, input: Record<string, unknown>) {
         id,
       );
     } else {
-      run(
+      await run(
         "INSERT INTO listings(id,sellerId,crop,category,price,unit,quantity,minimum,maximum,status,data,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
         id,
         user.id,
@@ -386,13 +395,13 @@ export function saveListing(user: User, input: Record<string, unknown>) {
         now(),
       );
     }
-    audit(user, publish ? "listing.submitted" : "listing.draft", id);
+    await audit(user, publish ? "listing.submitted" : "listing.draft", id);
     return { id, status: publish ? "pending" : "draft" };
   });
 }
-export function changeListing(user: User, id: string, action: string) {
-  return transaction(() => {
-    const listing = getListing(id, user);
+export async function changeListing(user: User, id: string, action: string) {
+  return await transaction(async () => {
+    const listing = await getListing(id, user);
     requireValue(listing.sellerId === user.id, "forbidden", 403);
     const transitions: Record<string, string> = {
       pause: "paused",
@@ -409,68 +418,80 @@ export function changeListing(user: User, id: string, action: string) {
     );
     if (action === "delete")
       requireValue(
-        !one(
+        !(await one(
           "SELECT i.orderId FROM order_items i JOIN orders o ON o.id=i.orderId WHERE i.listingId=? AND o.status NOT IN ('cancelled','rejected','delivered')",
           id,
-        ),
+        )),
         "active_orders",
         409,
       );
-    run(
+    await run(
       "UPDATE listings SET status=?,version=version+1,updatedAt=? WHERE id=?",
       transitions[action],
       now(),
       id,
     );
-    audit(user, `listing.${action}`, id);
+    await audit(user, `listing.${action}`, id);
   });
 }
-function restoreStock(orderId: string) {
-  for (const item of all<{ listingId: string; quantity: number }>(
-    "SELECT listingId,quantity FROM order_items WHERE orderId=?",
-    orderId,
-  ))
-    run(
+async function restoreStock(orderId: string) {
+  for (const item of await all<{
+    listingId: string;
+    quantity: number;
+  }>("SELECT listingId,quantity FROM order_items WHERE orderId=?", orderId))
+    await run(
       "UPDATE listings SET quantity=quantity+?,version=version+1 WHERE id=?",
       item.quantity,
       item.listingId,
     );
 }
-export function expireOrders() {
-  transaction(() => {
-    for (const o of all<{ id: string; buyerId: string; sellerId: string }>(
+export async function expireOrders() {
+  await transaction(async () => {
+    for (const o of await all<{
+      id: string;
+      buyerId: string;
+      sellerId: string;
+    }>(
       "SELECT id,buyerId,sellerId FROM orders WHERE status='awaiting_confirmation' AND expiresAt<?",
       now(),
     )) {
-      restoreStock(o.id);
-      run(
+      await restoreStock(o.id);
+      await run(
         "UPDATE orders SET status='cancelled',reason='Reservation expired after 24 hours' WHERE id=?",
         o.id,
       );
-      notify(o.buyerId, "order_expired", "/marketplace/orders");
-      notify(o.sellerId, "order_expired", "/marketplace/orders");
+      await notify(o.buyerId, "order_expired", "/marketplace/orders");
+      await notify(o.sellerId, "order_expired", "/marketplace/orders");
     }
   });
 }
-export function cart(user: User) {
-  expireOrders();
-  return all<{ listingId: string; quantity: number }>(
-    "SELECT listingId,quantity FROM cart WHERE userId=?",
-    user.id,
-  ).map((row) => {
-    let listing = null;
-    try {
-      listing = getListing(row.listingId);
-    } catch {}
-    return { listingId: row.listingId, quantity: row.quantity / 1000, listing };
-  });
+export async function cart(user: User) {
+  await expireOrders();
+  return await Promise.all(
+    (
+      await all<{
+        listingId: string;
+        quantity: number;
+      }>("SELECT listingId,quantity FROM cart WHERE userId=?", user.id)
+    ).map(async (row) => {
+      let listing = null;
+      try {
+        listing = await getListing(row.listingId);
+      } catch {}
+      return {
+        listingId: row.listingId,
+        quantity: row.quantity / 1000,
+        listing,
+      };
+    }),
+  );
 }
-export function setCart(user: User, id: string, quantity: number) {
+export async function setCart(user: User, id: string, quantity: number) {
   if (quantity === 0) {
-    run("DELETE FROM cart WHERE userId=? AND listingId=?", user.id, id);
+    await run("DELETE FROM cart WHERE userId=? AND listingId=?", user.id, id);
     return;
   }
-  const l = getListing(id);
+  const l = await getListing(id);
   requireValue(l.sellerId !== user.id, "own_listing");
   requireValue(
     l.status === "published" &&
@@ -481,14 +502,14 @@ export function setCart(user: User, id: string, quantity: number) {
     409,
   );
   const q = milli(numeric(quantity, 0.001, 1000000));
-  run(
+  await run(
     "INSERT INTO cart VALUES(?,?,?) ON CONFLICT(userId,listingId) DO UPDATE SET quantity=excluded.quantity",
     user.id,
     id,
     q,
   );
 }
-export function createOrders(user: User, input: Record<string, unknown>) {
+export async function createOrders(user: User, input: Record<string, unknown>) {
   const key = text(input.requestKey, 80, true);
   requireValue(/^[a-f0-9-]{36}$/.test(key), "invalid_request");
   const delivery = input.fulfillment === "delivery";
@@ -508,25 +529,27 @@ export function createOrders(user: User, input: Record<string, unknown>) {
       (!delivery || /^[1-9]\d{5}$/.test(data.pin)),
     "invalid_contact",
   );
-  expireOrders();
-  return transaction(() => {
-    const prior = all<{ id: string }>(
-      "SELECT id FROM orders WHERE buyerId=? AND requestKey=?",
-      user.id,
-      key,
-    );
+  await expireOrders();
+  return await transaction(async () => {
+    const prior = await all<{
+      id: string;
+    }>("SELECT id FROM orders WHERE buyerId=? AND requestKey=?", user.id, key);
     if (prior.length) return prior.map((o) => o.id);
-    const lines = all<{ listingId: string; quantity: number }>(
-      "SELECT listingId,quantity FROM cart WHERE userId=?",
-      user.id,
-    );
+    const lines = await all<{
+      listingId: string;
+      quantity: number;
+    }>("SELECT listingId,quantity FROM cart WHERE userId=?", user.id);
     requireValue(lines.length > 0 && lines.length <= 30, "empty_cart");
     const groups = new Map<
       string,
-      { l: Listing; quantity: number; subtotal: number }[]
+      {
+        l: Listing;
+        quantity: number;
+        subtotal: number;
+      }[]
     >();
     for (const line of lines) {
-      const l = getListing(line.listingId);
+      const l = await getListing(line.listingId);
       const expected = Array.isArray(input.expected)
         ? input.expected.find((e: { id: string }) => e.id === l.id)
         : null;
@@ -570,7 +593,7 @@ export function createOrders(user: User, input: Record<string, unknown>) {
       const id = randomUUID();
       const total = group.reduce((n, g) => n + g.subtotal, 0);
       requireValue(total <= 100000000, "order_too_large");
-      const privateListing = getListing(group[0].l.id, {
+      const privateListing = await getListing(group[0].l.id, {
         ...user,
         id: sellerId,
       });
@@ -579,7 +602,7 @@ export function createOrders(user: User, input: Record<string, unknown>) {
         sellerContact: privateListing.contact,
         pickupAddress: privateListing.pickup,
       };
-      run(
+      await run(
         "INSERT INTO orders(id,buyerId,sellerId,status,total,data,requestKey,createdAt,expiresAt) VALUES(?,?,?,'awaiting_confirmation',?,?,?,?,?)",
         id,
         user.id,
@@ -592,7 +615,7 @@ export function createOrders(user: User, input: Record<string, unknown>) {
       );
       for (const g of group) {
         const q = milli(g.quantity);
-        const result = run(
+        const result = await run(
           "UPDATE listings SET quantity=quantity-?,version=version+1 WHERE id=? AND quantity>=? AND status='published'",
           q,
           g.l.id,
@@ -600,8 +623,8 @@ export function createOrders(user: User, input: Record<string, unknown>) {
         );
         requireValue(result.changes === 1, "stock_unavailable", 409);
         if (g.l.quantity - g.quantity < g.l.minimum)
-          notify(sellerId, "low_stock", "/marketplace/my-listings");
-        run(
+          await notify(sellerId, "low_stock", "/marketplace/my-listings");
+        await run(
           "INSERT INTO order_items VALUES(?,?,?,?)",
           id,
           g.l.id,
@@ -617,60 +640,65 @@ export function createOrders(user: User, input: Record<string, unknown>) {
           }),
         );
       }
-      notify(sellerId, "new_order", "/marketplace/orders");
-      audit(user, "order.requested", id);
+      await notify(sellerId, "new_order", "/marketplace/orders");
+      await audit(user, "order.requested", id);
       ids.push(id);
     }
-    run("DELETE FROM cart WHERE userId=?", user.id);
+    await run("DELETE FROM cart WHERE userId=?", user.id);
     return ids;
   });
 }
-export function orders(user: User): Order[] {
-  expireOrders();
-  return all<{
-    id: string;
-    buyerId: string;
-    sellerId: string;
-    status: string;
-    total: number;
-    data: string;
-    createdAt: string;
-    expiresAt: string;
-    reason: string;
-    buyer: string;
-    seller: string;
-  }>(
-    `SELECT o.*,b.name buyer,s.name seller FROM orders o JOIN users b ON b.id=o.buyerId JOIN users s ON s.id=o.sellerId ${user.role === "admin" ? "" : "WHERE o.buyerId=? OR o.sellerId=?"} ORDER BY o.createdAt DESC`,
-    ...(user.role === "admin" ? [] : [user.id, user.id]),
-  ).map((o) => {
-    const { data, ...fields } = o;
-    const details = JSON.parse(data);
-    if (
-      user.id === o.buyerId &&
-      ["awaiting_confirmation", "rejected", "cancelled"].includes(o.status)
-    ) {
-      delete details.sellerContact;
-      delete details.pickupAddress;
-    }
-    return {
-      ...fields,
-      ...details,
-      items: all<{ snapshot: string }>(
-        "SELECT snapshot FROM order_items WHERE orderId=?",
-        o.id,
-      ).map((i) => JSON.parse(i.snapshot)),
-    };
-  });
+export async function orders(user: User): Promise<Order[]> {
+  await expireOrders();
+  return await Promise.all(
+    (
+      await all<{
+        id: string;
+        buyerId: string;
+        sellerId: string;
+        status: string;
+        total: number;
+        data: string;
+        createdAt: string;
+        expiresAt: string;
+        reason: string;
+        buyer: string;
+        seller: string;
+      }>(
+        `SELECT o.*,b.name buyer,s.name seller FROM orders o JOIN users b ON b.id=o.buyerId JOIN users s ON s.id=o.sellerId ${user.role === "admin" ? "" : "WHERE o.buyerId=? OR o.sellerId=?"} ORDER BY o.createdAt DESC`,
+        ...(user.role === "admin" ? [] : [user.id, user.id]),
+      )
+    ).map(async (o) => {
+      const { data, ...fields } = o;
+      const details = JSON.parse(data);
+      if (
+        user.id === o.buyerId &&
+        ["awaiting_confirmation", "rejected", "cancelled"].includes(o.status)
+      ) {
+        delete details.sellerContact;
+        delete details.pickupAddress;
+      }
+      return {
+        ...fields,
+        ...details,
+        items: (
+          await all<{
+            snapshot: string;
+          }>("SELECT snapshot FROM order_items WHERE orderId=?", o.id)
+        ).map((i) => JSON.parse(i.snapshot)),
+      };
+    }),
+  );
 }
-export function updateOrder(
+export async function updateOrder(
   user: User,
   id: string,
   target: string,
   reason: string,
 ) {
-  expireOrders();
-  transaction(() => {
-    const o = one<{
+  await expireOrders();
+  await transaction(async () => {
+    const o = await one<{
       buyerId: string;
       sellerId: string;
       status: string;
@@ -704,15 +732,14 @@ export function updateOrder(
     );
     if (["cancelled", "rejected"].includes(target)) {
       text(reason, 500, true);
-      restoreStock(id);
+      await restoreStock(id);
     }
     if (target === "confirmed") {
-      for (const i of all<{ listingId: string }>(
-        "SELECT listingId FROM order_items WHERE orderId=?",
-        id,
-      ))
+      for (const i of await all<{
+        listingId: string;
+      }>("SELECT listingId FROM order_items WHERE orderId=?", id))
         requireValue(
-          one(
+          await one(
             "SELECT id FROM listings WHERE id=? AND status IN ('published','paused')",
             i.listingId,
           ),
@@ -720,43 +747,49 @@ export function updateOrder(
           409,
         );
     }
-    run(
+    await run(
       "UPDATE orders SET status=?,reason=? WHERE id=?",
       target,
       reason.slice(0, 500),
       id,
     );
-    notify(o.buyerId, `order_${target}`, "/marketplace/orders");
-    audit(user, `order.${target}`, id, reason);
+    await notify(o.buyerId, `order_${target}`, "/marketplace/orders");
+    await audit(user, `order.${target}`, id, reason);
   });
 }
-export function sellerListings(user: User) {
-  expireOrders();
-  return all<Row>(
-    `${listingQuery} WHERE l.sellerId=? AND l.status!='deleted' ORDER BY l.createdAt DESC`,
-    user.id,
+export async function sellerListings(user: User) {
+  await expireOrders();
+  return (
+    await all<Row>(
+      `${listingQuery} WHERE l.sellerId=? AND l.status!='deleted' ORDER BY l.createdAt DESC`,
+      user.id,
+    )
   ).map((row) => listingFrom(row, true));
 }
-export function moderate(user: User, input: Record<string, unknown>) {
+export async function moderate(user: User, input: Record<string, unknown>) {
   requireValue(user.role === "admin", "forbidden", 403);
-  transaction(() => {
+  await transaction(async () => {
     const id = text(input.id, 100, true);
     const action = text(input.action);
     const reason = text(input.reason ?? "", 500);
     if (["approve", "reject", "corrections"].includes(action)) {
-      const l = getListing(id, user);
+      const l = await getListing(id, user);
       requireValue(l.status !== "deleted", "invalid_transition");
       requireValue(
         action === "approve" || reason.length > 0,
         "reason_required",
       );
       if (action === "approve") {
-        const seller = one<User>(
+        const seller = await one<User>(
           "SELECT * FROM users WHERE id=? AND suspended=0",
           l.sellerId,
         );
         requireValue(seller, "forbidden", 403);
-        validateListing(l as unknown as Record<string, unknown>, seller, true);
+        await validateListing(
+          l as unknown as Record<string, unknown>,
+          seller,
+          true,
+        );
       }
       const status =
         action === "approve"
@@ -764,62 +797,68 @@ export function moderate(user: User, input: Record<string, unknown>) {
           : action === "reject"
             ? "rejected"
             : "corrections";
-      run(
+      await run(
         "UPDATE listings SET status=?,moderation=?,version=version+1 WHERE id=?",
         status,
         reason,
         id,
       );
-      notify(l.sellerId, `listing_${status}`, "/marketplace/my-listings");
+      await notify(l.sellerId, `listing_${status}`, "/marketplace/my-listings");
     } else if (action === "verify" || action === "unverify") {
       requireValue(reason.length > 0, "reason_required");
-      run(
+      await run(
         "UPDATE users SET verified=? WHERE id=? AND role='farmer'",
         action === "verify" ? 1 : 0,
         id,
       );
     } else if (action === "suspend" || action === "unsuspend") {
       requireValue(id !== user.id && reason.length > 0, "reason_required");
-      run(
+      await run(
         "UPDATE users SET suspended=? WHERE id=? AND role!='admin'",
         action === "suspend" ? 1 : 0,
         id,
       );
     } else if (action === "resolve") {
       requireValue(reason.length > 0, "reason_required");
-      run(
+      await run(
         "UPDATE reports SET status='resolved',resolution=? WHERE id=?",
         reason,
         id,
       );
     } else throw new MarketError("invalid_action");
-    audit(user, `admin.${action}`, id, reason);
+    await audit(user, `admin.${action}`, id, reason);
   });
 }
-export function adminOverview(user: User) {
+export async function adminOverview(user: User) {
   requireValue(user.role === "admin", "forbidden", 403);
-  expireOrders();
+  await expireOrders();
   return {
-    listings: all<Row>(
-      `${listingQuery} WHERE l.status!='deleted' ORDER BY l.createdAt DESC`,
+    listings: (
+      await all<Row>(
+        `${listingQuery} WHERE l.status!='deleted' ORDER BY l.createdAt DESC`,
+      )
     ).map((r) => listingFrom(r, true)),
-    users: all("SELECT id,name,email,role,verified,suspended FROM users"),
-    reports: all("SELECT * FROM reports ORDER BY createdAt DESC"),
-    orders: orders(user),
-    audit: all("SELECT * FROM audit ORDER BY id DESC LIMIT 100"),
+    users: await all("SELECT id,name,email,role,verified,suspended FROM users"),
+    reports: await all("SELECT * FROM reports ORDER BY createdAt DESC"),
+    orders: await orders(user),
+    audit: await all("SELECT * FROM audit ORDER BY id DESC LIMIT 100"),
     metrics: {
-      active: one<{ n: number }>(
-        "SELECT COUNT(*) n FROM listings WHERE status='published'",
-      )!.n,
-      pending: one<{ n: number }>(
-        "SELECT COUNT(*) n FROM listings WHERE status='pending'",
-      )!.n,
-      orderValue: one<{ n: number }>(
+      active: (await one<{
+        n: number;
+      }>("SELECT COUNT(*) n FROM listings WHERE status='published'"))!.n,
+      pending: (await one<{
+        n: number;
+      }>("SELECT COUNT(*) n FROM listings WHERE status='pending'"))!.n,
+      orderValue: (await one<{
+        n: number;
+      }>(
         "SELECT COALESCE(SUM(total),0) n FROM orders WHERE status NOT IN ('cancelled','rejected')",
-      )!.n,
-      completedValue: one<{ n: number }>(
+      ))!.n,
+      completedValue: (await one<{
+        n: number;
+      }>(
         "SELECT COALESCE(SUM(total),0) n FROM orders WHERE status='delivered'",
-      )!.n,
+      ))!.n,
     },
   };
 }

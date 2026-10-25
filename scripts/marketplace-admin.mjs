@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { hashPassword } from "../lib/marketplace/auth.ts";
 import { one, run, closeDb } from "../lib/marketplace/db.ts";
-
 const email = (process.env.MARKETPLACE_ADMIN_EMAIL || "").trim().toLowerCase();
 const password = process.env.MARKETPLACE_ADMIN_PASSWORD || "";
 if (
@@ -14,13 +13,13 @@ if (
   );
   process.exit(1);
 }
-if (one("SELECT id FROM users WHERE email=?", email)) {
+if (await one("SELECT id FROM users WHERE email=?", email)) {
   console.error(
     "Account already exists. No roles or passwords were changed. Use a new administrator email or your database recovery procedure.",
   );
   process.exit(1);
 }
-run(
+await run(
   "INSERT INTO users(id,email,password,name,role,createdAt) VALUES(?,?,?,?,?,?)",
   randomUUID(),
   email,
@@ -29,7 +28,7 @@ run(
   "admin",
   new Date().toISOString(),
 );
-closeDb();
+await closeDb();
 console.log(
   "Administrator created. Sign in at /marketplace/account, then open /admin/marketplace.",
 );

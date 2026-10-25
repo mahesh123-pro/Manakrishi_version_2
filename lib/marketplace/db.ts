@@ -1,76 +1,176 @@
-import { DatabaseSync, type SQLInputValue } from "node:sqlite";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import type { DatabaseSync, SQLInputValue } from "node:sqlite";
+import pg, { type PoolClient } from "pg";
+import { attachDatabasePool } from "@vercel/functions";
+import { SQLITE_SCHEMA } from "./schema-sqlite.ts";
 
-let connection: DatabaseSync | undefined;
-export function db() {
-  if (connection) return connection;
+const context = new AsyncLocalStorage<{
+  client?: PoolClient;
+  sqlite?: boolean;
+}>();
+let sqlite: DatabaseSync | undefined;
+let pool: pg.Pool | undefined;
+let queue = Promise.resolve();
+const camelColumns = Object.fromEntries(
+  [
+    "userId",
+    "sellerId",
+    "buyerId",
+    "ownerId",
+    "listingId",
+    "orderId",
+    "actorId",
+    "targetId",
+    "requestKey",
+    "createdAt",
+    "updatedAt",
+    "expiresAt",
+    "publicContact",
+    "buyerName",
+  ].map((key) => [key.toLowerCase(), key]),
+);
+export function postgresPool() {
+  if (!process.env.DATABASE_URL)
+    throw new Error("DATABASE_URL is required for the marketplace on Vercel.");
+  if (!pool) {
+    pool = new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: 5,
+      idleTimeoutMillis: 5000,
+      connectionTimeoutMillis: 15000,
+    });
+    if (process.env.VERCEL) attachDatabasePool(pool);
+  }
+  return pool;
+}
+async function localDb() {
+  if (process.env.VERCEL)
+    throw new Error(
+      "Configure DATABASE_URL; SQLite is not supported on Vercel.",
+    );
   if (
     process.env.NODE_ENV === "production" &&
     !process.env.MARKETPLACE_DATA_DIR
   )
     throw new Error(
-      "MARKETPLACE_DATA_DIR must point to a persistent volume in production.",
+      "Configure DATABASE_URL or a persistent MARKETPLACE_DATA_DIR.",
     );
-  const file = resolve(
-    process.env.MARKETPLACE_DATA_DIR || ".marketplace",
-    "marketplace.sqlite",
+  if (!sqlite) {
+    const { DatabaseSync } = await import("node:sqlite");
+    const file = resolve(
+      process.env.MARKETPLACE_DATA_DIR || ".marketplace",
+      "marketplace.sqlite",
+    );
+    mkdirSync(dirname(file), { recursive: true });
+    sqlite = new DatabaseSync(file, { timeout: 5000 });
+    sqlite.exec(SQLITE_SCHEMA);
+  }
+  return sqlite;
+}
+// SQL originates exclusively from this repository. Values stay parameterized.
+function postgresSql(sql: string) {
+  let index = 0;
+  const ignore = sql.startsWith("INSERT OR IGNORE");
+  return (
+    sql
+      .replace("INSERT OR IGNORE", "INSERT")
+      .replace("count=count+1", "count=rate_limits.count+1")
+      .replace(
+        /json_each\(l\.data,'\$\.images'\)/g,
+        "jsonb_array_elements_text(l.data::jsonb->'images') AS image_values(value)",
+      )
+      .replace(/'(?:''|[^'])*'|\?/g, (token) =>
+        token === "?" ? `$${++index}` : token,
+      ) + (ignore ? " ON CONFLICT DO NOTHING" : "")
   );
-  mkdirSync(dirname(file), { recursive: true });
-  connection = new DatabaseSync(file, { timeout: 5000 });
-  connection.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
-    CREATE TABLE IF NOT EXISTS migrations(version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('buyer','farmer','admin')), verified INTEGER NOT NULL DEFAULT 0, suspended INTEGER NOT NULL DEFAULT 0, village TEXT NOT NULL DEFAULT '', district TEXT NOT NULL DEFAULT '', state TEXT NOT NULL DEFAULT '', bio TEXT NOT NULL DEFAULT '', photo TEXT NOT NULL DEFAULT '', publicContact TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), expires INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS listings(id TEXT PRIMARY KEY, sellerId TEXT NOT NULL REFERENCES users(id), crop TEXT NOT NULL, category TEXT NOT NULL, price INTEGER NOT NULL CHECK(price>=0), unit TEXT NOT NULL, quantity INTEGER NOT NULL CHECK(quantity>=0), minimum INTEGER NOT NULL CHECK(minimum>0), maximum INTEGER NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1, views INTEGER NOT NULL DEFAULT 0, moderation TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL);
-    CREATE INDEX IF NOT EXISTS listings_search ON listings(status,category,createdAt DESC);
-    CREATE INDEX IF NOT EXISTS listings_seller ON listings(sellerId,status);
-    CREATE INDEX IF NOT EXISTS listings_price ON listings(status,price);
-    CREATE INDEX IF NOT EXISTS listings_district ON listings(json_extract(data,'$.district'),status);
-    CREATE INDEX IF NOT EXISTS listings_state ON listings(json_extract(data,'$.state'),status);
-    CREATE TABLE IF NOT EXISTS images(id TEXT PRIMARY KEY, ownerId TEXT NOT NULL REFERENCES users(id), bytes BLOB NOT NULL, createdAt TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS cart(userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), quantity INTEGER NOT NULL, PRIMARY KEY(userId,listingId));
-    CREATE TABLE IF NOT EXISTS wishlist(userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), PRIMARY KEY(userId,listingId));
-    CREATE TABLE IF NOT EXISTS orders(id TEXT PRIMARY KEY, buyerId TEXT NOT NULL REFERENCES users(id), sellerId TEXT NOT NULL REFERENCES users(id), status TEXT NOT NULL, total INTEGER NOT NULL, data TEXT NOT NULL, requestKey TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL, expiresAt TEXT NOT NULL, UNIQUE(buyerId,requestKey,sellerId));
-    CREATE INDEX IF NOT EXISTS orders_buyer ON orders(buyerId,createdAt DESC);
-    CREATE INDEX IF NOT EXISTS orders_seller ON orders(sellerId,status);
-    CREATE TABLE IF NOT EXISTS order_items(orderId TEXT NOT NULL REFERENCES orders(id), listingId TEXT NOT NULL REFERENCES listings(id), quantity INTEGER NOT NULL, snapshot TEXT NOT NULL, PRIMARY KEY(orderId,listingId));
-    CREATE TABLE IF NOT EXISTS enquiries(id TEXT PRIMARY KEY, listingId TEXT NOT NULL REFERENCES listings(id), buyerId TEXT NOT NULL REFERENCES users(id), sellerId TEXT NOT NULL REFERENCES users(id), message TEXT NOT NULL, reply TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS reports(id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), reason TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', resolution TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS notifications(id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), message TEXT NOT NULL, href TEXT NOT NULL, createdAt TEXT NOT NULL, seen INTEGER NOT NULL DEFAULT 0);
-    CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, actorId TEXT NOT NULL, action TEXT NOT NULL, targetId TEXT NOT NULL, detail TEXT NOT NULL, createdAt TEXT NOT NULL);
-    CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
-    INSERT OR IGNORE INTO migrations VALUES (1,datetime('now'));`);
-  return connection;
 }
-export function all<T>(sql: string, ...args: SQLInputValue[]): T[] {
-  return db()
-    .prepare(sql)
-    .all(...args) as unknown as T[];
+function row<T>(record: Record<string, unknown>): T {
+  return Object.fromEntries(
+    Object.entries(record).map(([key, value]) => [
+      camelColumns[key] || key,
+      value,
+    ]),
+  ) as T;
 }
-export function one<T>(sql: string, ...args: SQLInputValue[]): T | undefined {
-  return db()
-    .prepare(sql)
-    .get(...args) as unknown as T | undefined;
+async function query(sql: string, args: SQLInputValue[]) {
+  const client = context.getStore()?.client || postgresPool();
+  return client.query({
+    text: postgresSql(sql),
+    values: args.map((value) =>
+      value instanceof Uint8Array ? Buffer.from(value) : value,
+    ),
+    types: {
+      getTypeParser: (oid: number, format?: string) =>
+        oid === 20 || oid === 1700
+          ? Number
+          : pg.types.getTypeParser(oid, format as "text"),
+    },
+  });
 }
-export function run(sql: string, ...args: SQLInputValue[]) {
-  return db()
-    .prepare(sql)
-    .run(...args);
+export async function all<T = Record<string, unknown>>(
+  sql: string,
+  ...args: SQLInputValue[]
+): Promise<T[]> {
+  if (process.env.DATABASE_URL)
+    return (await query(sql, args)).rows.map((record) => row<T>(record));
+  return (await localDb()).prepare(sql).all(...args) as unknown as T[];
 }
-export function transaction<T>(fn: () => T): T {
-  db().exec("BEGIN IMMEDIATE");
+export async function one<T = Record<string, unknown>>(
+  sql: string,
+  ...args: SQLInputValue[]
+): Promise<T | undefined> {
+  return (await all<T>(sql, ...args))[0];
+}
+export async function run(sql: string, ...args: SQLInputValue[]) {
+  if (process.env.DATABASE_URL)
+    return { changes: (await query(sql, args)).rowCount || 0 };
+  return (await localDb()).prepare(sql).run(...args);
+}
+export async function transaction<T>(fn: () => T | Promise<T>): Promise<T> {
+  if (context.getStore()) return fn();
+  if (process.env.DATABASE_URL) {
+    const client = await postgresPool().connect();
+    try {
+      await client.query("BEGIN");
+      // Serialize marketplace transactions across Vercel instances, matching
+      // SQLite's writer lock for idempotency and atomic stock reservations.
+      await client.query("SELECT pg_advisory_xact_lock(74719301)");
+      const result = await context.run({ client }, fn);
+      await client.query("COMMIT");
+      return result;
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+  const previous = queue;
+  let release!: () => void;
+  queue = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await previous;
   try {
-    const result = fn();
-    db().exec("COMMIT");
-    return result;
-  } catch (error) {
-    db().exec("ROLLBACK");
-    throw error;
+    const connection = await localDb();
+    connection.exec("BEGIN IMMEDIATE");
+    try {
+      const result = await context.run({ sqlite: true }, fn);
+      connection.exec("COMMIT");
+      return result;
+    } catch (error) {
+      connection.exec("ROLLBACK");
+      throw error;
+    }
+  } finally {
+    release();
   }
 }
-export function closeDb() {
-  connection?.close();
-  connection = undefined;
+export async function closeDb() {
+  sqlite?.close();
+  sqlite = undefined;
+  await pool?.end();
+  pool = undefined;
 }

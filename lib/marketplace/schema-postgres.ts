@@ -1,0 +1,24 @@
+export const POSTGRES_SCHEMA = ` 
+    CREATE TABLE IF NOT EXISTS migrations(version BIGINT PRIMARY KEY, applied_at TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, password TEXT NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('buyer','farmer','admin')), verified BIGINT NOT NULL DEFAULT 0, suspended BIGINT NOT NULL DEFAULT 0, village TEXT NOT NULL DEFAULT '', district TEXT NOT NULL DEFAULT '', state TEXT NOT NULL DEFAULT '', bio TEXT NOT NULL DEFAULT '', photo TEXT NOT NULL DEFAULT '', publicContact TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS sessions(hash TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), expires BIGINT NOT NULL);
+    CREATE TABLE IF NOT EXISTS listings(id TEXT PRIMARY KEY, sellerId TEXT NOT NULL REFERENCES users(id), crop TEXT NOT NULL, category TEXT NOT NULL, price BIGINT NOT NULL CHECK(price>=0), unit TEXT NOT NULL, quantity BIGINT NOT NULL CHECK(quantity>=0), minimum BIGINT NOT NULL CHECK(minimum>0), maximum BIGINT NOT NULL, status TEXT NOT NULL, data TEXT NOT NULL, version BIGINT NOT NULL DEFAULT 1, views BIGINT NOT NULL DEFAULT 0, moderation TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL);
+    CREATE INDEX IF NOT EXISTS listings_search ON listings(status,category,createdAt DESC);
+    CREATE INDEX IF NOT EXISTS listings_seller ON listings(sellerId,status);
+    CREATE INDEX IF NOT EXISTS listings_price ON listings(status,price);
+    CREATE INDEX IF NOT EXISTS listings_district ON listings(((data::jsonb)->>'district'),status);
+    CREATE INDEX IF NOT EXISTS listings_state ON listings(((data::jsonb)->>'state'),status);
+    CREATE TABLE IF NOT EXISTS images(id TEXT PRIMARY KEY, ownerId TEXT NOT NULL REFERENCES users(id), bytes BYTEA NOT NULL, createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS cart(userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), quantity BIGINT NOT NULL, PRIMARY KEY(userId,listingId));
+    CREATE TABLE IF NOT EXISTS wishlist(userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), PRIMARY KEY(userId,listingId));
+    CREATE TABLE IF NOT EXISTS orders(id TEXT PRIMARY KEY, buyerId TEXT NOT NULL REFERENCES users(id), sellerId TEXT NOT NULL REFERENCES users(id), status TEXT NOT NULL, total BIGINT NOT NULL, data TEXT NOT NULL, requestKey TEXT NOT NULL, reason TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL, expiresAt TEXT NOT NULL, UNIQUE(buyerId,requestKey,sellerId));
+    CREATE INDEX IF NOT EXISTS orders_buyer ON orders(buyerId,createdAt DESC);
+    CREATE INDEX IF NOT EXISTS orders_seller ON orders(sellerId,status);
+    CREATE TABLE IF NOT EXISTS order_items(orderId TEXT NOT NULL REFERENCES orders(id), listingId TEXT NOT NULL REFERENCES listings(id), quantity BIGINT NOT NULL, snapshot TEXT NOT NULL, PRIMARY KEY(orderId,listingId));
+    CREATE TABLE IF NOT EXISTS enquiries(id TEXT PRIMARY KEY, listingId TEXT NOT NULL REFERENCES listings(id), buyerId TEXT NOT NULL REFERENCES users(id), sellerId TEXT NOT NULL REFERENCES users(id), message TEXT NOT NULL, reply TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS reports(id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), listingId TEXT NOT NULL REFERENCES listings(id), reason TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open', resolution TEXT NOT NULL DEFAULT '', createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS notifications(id TEXT PRIMARY KEY, userId TEXT NOT NULL REFERENCES users(id), message TEXT NOT NULL, href TEXT NOT NULL, createdAt TEXT NOT NULL, seen BIGINT NOT NULL DEFAULT 0);
+    CREATE TABLE IF NOT EXISTS audit(id BIGSERIAL PRIMARY KEY, actorId TEXT NOT NULL, action TEXT NOT NULL, targetId TEXT NOT NULL, detail TEXT NOT NULL, createdAt TEXT NOT NULL);
+    CREATE TABLE IF NOT EXISTS rate_limits(key TEXT PRIMARY KEY, count BIGINT NOT NULL, expires BIGINT NOT NULL);
+    CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
+    INSERT INTO migrations VALUES (1,CURRENT_TIMESTAMP::text) ON CONFLICT DO NOTHING;`;
