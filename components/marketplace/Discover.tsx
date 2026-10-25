@@ -36,6 +36,11 @@ const CATEGORY_ICONS: Record<string, typeof Sprout> = {
   commercial: Flower2,
   organic: Leaf,
 };
+const CROP_PREVIEWS = [
+  { id: "tomato", en: "Tomato", te: "టమాటా", price: 30, description: "Juicy red tomatoes for everyday curries, salads and sauces.", descriptionTe: "రోజువారీ కూరలు, సలాడ్లు మరియు సాస్‌ల కోసం ఎర్రని టమాటాలు." },
+  { id: "chilli", en: "Green chilli", te: "పచ్చిమిర్చి", price: 60, description: "Fresh green chillies for a bright, spicy touch in your cooking.", descriptionTe: "మీ వంటకు ఘాటైన రుచిని అందించే తాజా పచ్చిమిర్చి." },
+  { id: "onion", en: "Onion", te: "ఉల్లిపాయ", price: 35, description: "Red onions with crisp layers for curries, chutneys and salads.", descriptionTe: "కూరలు, పచ్చళ్లు మరియు సలాడ్ల కోసం ఎర్ర ఉల్లిపాయలు." },
+] as const;
 function CategoryIcon({ id }: { id: string }) {
   const Icon = CATEGORY_ICONS[id] || Sprout;
   return <Icon size={29} strokeWidth={1.45} />;
@@ -402,6 +407,35 @@ export function Discover() {
             </button>
           ))}
         </div>
+      </section>
+      <section className="mx-auto max-w-7xl px-5 pb-12" aria-labelledby="crop-preview-heading">
+        <p className="mk-eyebrow">{c("From the vegetable basket", "కూరగాయల బుట్ట నుండి")}</p>
+        <h2 id="crop-preview-heading" className="mt-2 font-heading text-3xl font-semibold">{c("Everyday crops, naturally colourful", "రోజువారీ పంటలు, సహజ రంగులు")}</h2>
+        <p className="mt-3 max-w-2xl text-sm text-muted">{c("Explore sample crops below. Prices are illustrative examples, not current market rates or offers. Availability and final prices come from published farmer listings.", "క్రింద నమూనా పంటలను చూడండి. ధరలు ఉదాహరణలు మాత్రమే; ప్రస్తుత మార్కెట్ ధరలు లేదా ఆఫర్లు కావు. అందుబాటు, తుది ధరలు రైతుల లిస్టింగ్‌లలో చూడండి.")}</p>
+        <div className="mt-7 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {CROP_PREVIEWS.map((crop) => (
+            <article key={crop.id} className="group overflow-hidden rounded-3xl border border-green/10 bg-white shadow-sm transition-shadow duration-300 hover:shadow-lg">
+              <div className="relative aspect-[4/3] overflow-hidden bg-green/5">
+                <Image src={`/assets/marketplace-${crop.id}.webp`} alt={c(crop.en, crop.te)} fill sizes="(max-width:640px) 92vw, (max-width:1024px) 46vw, 31vw" className="object-cover transition-transform duration-700 motion-safe:group-hover:scale-105" />
+                <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-green">{c("Sample crop", "నమూనా పంట")}</span>
+              </div>
+              <div className="p-6">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="font-heading text-2xl font-semibold">{c(crop.en, crop.te)}</h3>
+                  <p className="font-semibold text-green">₹{crop.price}<span className="text-xs font-normal text-muted"> / {c("kg", "కిలో")}</span></p>
+                </div>
+                <p className="mt-1 text-[11px] text-muted">{c("Illustrative price", "ఉదాహరణ ధర")}</p>
+                <p className="mt-3 min-h-12 text-sm leading-relaxed text-muted">{c(crop.description, crop.descriptionTe)}</p>
+                <button className="mk-secondary mt-5 w-full justify-center" onClick={() => {
+                  setPage(1);
+                  setFilters({ ...initial, q: crop.en });
+                  document.getElementById("crop-results")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+                }}>{c("Find farmer listings", "రైతుల లిస్టింగ్‌లు చూడండి")}<ArrowRight size={16} /></button>
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-muted">{c("AI-generated crop photography for illustration.", "సూచన కోసం AI రూపొందించిన పంట చిత్రాలు.")}</p>
       </section>
       <section
         id="crop-results"

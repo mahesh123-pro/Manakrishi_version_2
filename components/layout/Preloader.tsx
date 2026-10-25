@@ -41,6 +41,7 @@ export function Preloader() {
         <motion.div initial={false} animate={reduceMotion ? {} : { scale: [0.96, 1] }} transition={{ duration: 1.1, ease: "easeOut" }}>
           <Image src="/assets/manakrishi-logo.png" alt="Manakrishi" width={288} height={288} priority sizes="(max-width: 640px) 240px, 288px" className="h-60 w-60 object-contain sm:h-72 sm:w-72" />
         </motion.div>
+        <p className="mb-6 rounded-full border border-green/15 bg-green/5 px-5 py-2 text-xs font-medium text-green sm:text-sm">{t({ en: "Manakrishi in collaboration with TRA", te: "TRA సహకారంతో మనకృషి" })}</p>
         <div aria-hidden="true" className="brand-loader-track mt-1 h-1 w-28 overflow-hidden rounded-full bg-green/10"><span className="brand-loader-fill block h-full w-full origin-left rounded-full bg-green" /></div>
         <p className="mt-5 text-[10px] font-medium uppercase tracking-[0.18em] text-muted">{t({ en: "Rooted in farming. Growing with you.", te: "వ్యవసాయమే పునాది. మీతో కలిసి ఎదుగుతాం." })}</p>
       </div>
