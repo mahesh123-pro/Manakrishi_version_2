@@ -46,6 +46,8 @@ const CATEGORY_ICONS: Record<string, typeof Sprout> = {
 const CROP_PREVIEWS = [
   {
     id: "tomato",
+    category: "vegetables",
+    query: "tomato",
     en: "Tomato",
     te: "టమాటా",
     price: 30,
@@ -54,6 +56,8 @@ const CROP_PREVIEWS = [
   },
   {
     id: "chilli",
+    category: "vegetables",
+    query: "chilli",
     en: "Green chilli",
     te: "పచ్చిమిర్చి",
     price: 60,
@@ -63,12 +67,50 @@ const CROP_PREVIEWS = [
   },
   {
     id: "onion",
+    category: "vegetables",
+    query: "onion",
     en: "Onion",
     te: "ఉల్లిపాయ",
     price: 35,
     description:
       "Red onions with crisp layers for curries, chutneys and salads.",
     descriptionTe: "కూరలు, పచ్చళ్లు మరియు సలాడ్ల కోసం ఎర్ర ఉల్లిపాయలు.",
+  },
+  {
+    id: "pulses",
+    category: "pulses",
+    query: "",
+    en: "Pulses & dals",
+    te: "పప్పు ధాన్యాలు",
+    price: null,
+    description:
+      "Explore toor dal, green gram and other pulses. Confirm whole or split grain, cleaning, packing and current price with the farmer.",
+    descriptionTe:
+      "కందిపప్పు, పెసలు మరియు ఇతర పప్పు ధాన్యాలను చూడండి. గింజలు లేదా పప్పు రకం, శుభ్రత, ప్యాకింగ్, ప్రస్తుత ధర రైతుతో నిర్ధారించండి.",
+  },
+  {
+    id: "groundnuts",
+    category: "oilseeds",
+    query: "groundnut",
+    en: "Groundnuts",
+    te: "వేరుశనగలు",
+    price: null,
+    description:
+      "Groundnut pods and raw kernels for household or bulk buyers. Ask about shelling, grading, moisture, packing and minimum lot size.",
+    descriptionTe:
+      "ఇంటి అవసరాలకు లేదా టోకు కొనుగోలుకు వేరుశనగ కాయలు, పచ్చి గింజలు. ఒలిచిన రకం, గ్రేడ్, తేమ, ప్యాకింగ్, కనీస పరిమాణం గురించి అడగండి.",
+  },
+  {
+    id: "chickpeas",
+    category: "pulses",
+    query: "chickpea",
+    en: "Chickpeas",
+    te: "శనగలు",
+    price: null,
+    description:
+      "Whole chickpeas for everyday cooking and larger orders. Confirm variety, grain size, cleaning, harvest details and collection with the seller.",
+    descriptionTe:
+      "రోజువారీ వంటలకు, పెద్ద ఆర్డర్లకు శనగలు. రకం, గింజ పరిమాణం, శుభ్రత, కోత వివరాలు, సేకరణను విక్రేతతో నిర్ధారించండి.",
   },
 ] as const;
 function CategoryIcon({ id }: { id: string }) {
@@ -454,7 +496,10 @@ export function Discover() {
         aria-labelledby="crop-preview-heading"
       >
         <p className="mk-eyebrow">
-          {c("From the vegetable basket", "కూరగాయల బుట్ట నుండి")}
+          {c(
+            "Vegetables, pulses & groundnuts",
+            "కూరగాయలు, పప్పులు & వేరుశనగలు",
+          )}
         </p>
         <h2
           id="crop-preview-heading"
@@ -467,7 +512,7 @@ export function Discover() {
         </h2>
         <p className="mt-3 max-w-2xl text-sm text-muted">
           {c(
-            "Explore sample crops below. Prices are illustrative examples, not current market rates or offers. Availability and final prices come from published farmer listings.",
+            "Explore sample vegetables, pulses and groundnuts below. Any prices shown are illustrative examples, not current market rates or offers. Availability and final prices come from published farmer listings.",
             "క్రింద నమూనా పంటలను చూడండి. ధరలు ఉదాహరణలు మాత్రమే; ప్రస్తుత మార్కెట్ ధరలు లేదా ఆఫర్లు కావు. అందుబాటు, తుది ధరలు రైతుల లిస్టింగ్‌లలో చూడండి.",
           )}
         </p>
@@ -495,15 +540,26 @@ export function Discover() {
                     {c(crop.en, crop.te)}
                   </h3>
                   <p className="font-semibold text-green">
-                    ₹{crop.price}
-                    <span className="text-xs font-normal text-muted">
-                      {" "}
-                      / {c("kg", "కిలో")}
-                    </span>
+                    {crop.price === null ? (
+                      c("Ask farmer", "రైతును అడగండి")
+                    ) : (
+                      <>
+                        ₹{crop.price}
+                        <span className="text-xs font-normal text-muted">
+                          {" "}
+                          / {c("kg", "కిలో")}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
                 <p className="mt-1 text-[11px] text-muted">
-                  {c("Illustrative price", "ఉదాహరణ ధర")}
+                  {crop.price === null
+                    ? c(
+                        "Check current price in farmer listings",
+                        "రైతు లిస్టింగ్‌లో ప్రస్తుత ధర చూడండి",
+                      )
+                    : c("Illustrative price", "ఉదాహరణ ధర")}
                 </p>
                 <p className="mt-3 min-h-12 text-sm leading-relaxed text-muted">
                   {c(crop.description, crop.descriptionTe)}
@@ -512,16 +568,18 @@ export function Discover() {
                   className="mk-secondary mt-5 w-full justify-center"
                   onClick={() => {
                     setPage(1);
-                    setFilters({ ...initial, q: crop.en });
-                    document
-                      .getElementById("crop-results")
-                      ?.scrollIntoView({
-                        behavior: window.matchMedia(
-                          "(prefers-reduced-motion: reduce)",
-                        ).matches
-                          ? "instant"
-                          : "smooth",
-                      });
+                    setFilters({
+                      ...initial,
+                      q: crop.query,
+                      category: crop.category,
+                    });
+                    document.getElementById("crop-results")?.scrollIntoView({
+                      behavior: window.matchMedia(
+                        "(prefers-reduced-motion: reduce)",
+                      ).matches
+                        ? "instant"
+                        : "smooth",
+                    });
                   }}
                 >
                   {c("Find farmer listings", "రైతుల లిస్టింగ్‌లు చూడండి")}
