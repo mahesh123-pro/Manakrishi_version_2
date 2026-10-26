@@ -259,7 +259,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
     [
       /^\/marketplace$/,
       "/marketplace",
-      c("Discover crops", "పంటలు చూడండి"),
+      c("Crops & inputs", "పంటలు & ఇన్‌పుట్లు"),
       Sprout,
     ],
     [

@@ -413,6 +413,12 @@ select option { background: white; color: #1c3929; }
 @keyframes mk-loading { to { background-position:-150% 0; } }
 @media(max-width:640px) { .mk-panel{padding:18px;} .mk-sell-banner{padding:28px;} .mk-search .mk-btn{padding:11px;font-size:11px;} .mk-container{padding-top:30px;} }
 @media(prefers-reduced-motion:reduce) { .mk-skeleton{animation:none;} .mk-btn,.mk-secondary,.mk-product{transition:none;} }
+.mk-input-product { box-shadow:0 5px 24px -22px #20472838; }
+.mk-input-product:hover { border-color:#b5c8a8; box-shadow:0 16px 32px -18px #294c2a33; }
+.mk-input-request-dialog { position:fixed; inset:50% auto auto 50%; transform:translate(-50%,-50%); width:min(600px,calc(100vw - 32px)); max-height:min(90dvh,850px); overflow:auto; border:1px solid #e0e8d8; border-radius:24px; padding:26px; background:#fff; color:#173423; box-shadow:0 24px 80px #112b2038; }
+.mk-input-request-dialog::backdrop { background:#112b2090; backdrop-filter:blur(3px); }
+@media(max-width:640px) { .mk-input-request-dialog { padding:20px; border-radius:20px; } }
+@media(prefers-reduced-motion:reduce) { .mk-input-product { transition:none; } }
 .mk-preview-dialog { position:fixed; inset:0; max-width:650px; width:calc(100% - 32px); max-height:85dvh; margin:auto; padding:0; border:0; border-radius:24px; color:#0f172a; background:white; }
 .mk-preview-dialog::backdrop { background:#102a20a6; }
 .mk-preview-dialog .mk-modal-card { max-height:none; }

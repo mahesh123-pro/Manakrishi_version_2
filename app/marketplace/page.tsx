@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Discover } from "@/components/marketplace/Discover";
 export const metadata: Metadata = {
-  title: "Marketplace | From Farmers to Families",
+  title: "Crops & Farm Inputs | Manakrishi Marketplace",
   description:
-    "Discover agricultural produce directly from farmers. Compare crops, prices and harvests with Manakrishi.",
+    "Discover crops from local farmers and request quotes for mulch sheets, seeds, saplings, plant protection and drip supplies.",
   alternates: { canonical: "/marketplace" },
 };
 export default function Page() {

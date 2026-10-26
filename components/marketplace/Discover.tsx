@@ -23,6 +23,7 @@ import {
 import { CATEGORIES, type Listing, type User } from "@/lib/marketplace/types";
 import { useMarket, PageHeading, Empty, Skeleton } from "./MarketProvider";
 import { ProductCard } from "./ProductCard";
+import { FarmInputs } from "./FarmInputs";
 
 const CATEGORY_ICONS: Record<string, typeof Sprout> = {
   grains: Wheat,
@@ -308,6 +309,12 @@ export function Discover() {
               >
                 {c("Sell your harvest", "మీ పంట అమ్మండి")}
               </Link>
+              <Link
+                href="#farm-inputs-heading"
+                className="font-semibold text-green underline underline-offset-4"
+              >
+                {c("Browse farm inputs", "వ్యవసాయ ఇన్‌పుట్లు చూడండి")}
+              </Link>
             </div>
           </div>
           <div className="mk-hero-art">
@@ -437,6 +444,7 @@ export function Discover() {
         </div>
         <p className="mt-3 text-xs text-muted">{c("AI-generated crop photography for illustration.", "సూచన కోసం AI రూపొందించిన పంట చిత్రాలు.")}</p>
       </section>
+      <FarmInputs />
       <section
         id="crop-results"
         className="mk-results mx-auto max-w-7xl scroll-mt-24 px-5"
