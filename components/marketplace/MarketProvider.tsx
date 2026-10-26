@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/context";
 import type { User } from "@/lib/marketplace/types";
+import { ComparisonProvider } from "./Comparison";
 
 const ERRORS: Record<string, [string, string]> = {
   sign_in: ["Please sign in to continue.", "కొనసాగించడానికి సైన్ ఇన్ చేయండి."],
@@ -378,7 +379,9 @@ export function MarketProvider({ children }: { children: ReactNode }) {
             ))}
           </nav>
         </div>
-        {children}
+        <ComparisonProvider api={api} c={c} notice={setToast}>
+          {children}
+        </ComparisonProvider>
         <div className="mx-auto mt-16 grid max-w-7xl gap-7 border-t border-green/15 px-5 py-10 sm:grid-cols-3">
           <div>
             <p className="font-heading text-xl text-green">

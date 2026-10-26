@@ -4,6 +4,7 @@ import { requireValue, MarketError } from "./auth.ts";
 import {
   CATEGORIES,
   UNITS,
+  produceSubtotal,
   type Listing,
   type ListingInput,
   type User,
@@ -578,7 +579,7 @@ export async function createOrders(user: User, input: Record<string, unknown>) {
         "fulfillment_mismatch",
       );
       const quantity = line.quantity / 1000;
-      const subtotal = Math.round(l.price * 100 * quantity);
+      const subtotal = produceSubtotal(l.price, quantity);
       requireValue(
         Number.isSafeInteger(subtotal) && subtotal > 0 && subtotal <= 100000000,
         "order_too_large",

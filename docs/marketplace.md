@@ -141,3 +141,9 @@ Validation: npm run test:admin-booking checks assignment requirements, schedule 
 The service-booking desk includes queues for active jobs today (Asia/Kolkata), jobs past their service date, and jobs missing operator details. Date filters use the scheduled date or fall back to the requested date. Search, service/status/date filters, queues and sorting apply to loaded records; use Load more for additional records. CSV exports include only the visible filtered records, neutralize spreadsheet formula prefixes, and include private contact information for authorized operational use.
 
 Customer WhatsApp links prepare messages for a staff member to review and send. Calls and calendar downloads are manual actions. Calendar files include a scheduled start in UTC converted from IST, without an assumed duration or automatic synchronization. Warnings identify matching operator phone/date/start-time values among loaded active records; they do not check job durations, prevent assignments, or replace schedule confirmation.
+
+### Buyer browsing tools
+
+Crop search filters can be shared through the marketplace URL and restore on reload or browser back/forward navigation. Only supported search fields are serialized. Visitors can save up to five named searches on the current device; this does not subscribe to alerts or synchronize devices. Saved searches require browser local storage.
+
+Published crop cards and product pages offer sharing and comparison. Compare up to three crops using per-kilogram prices, original unit prices, minimum produce subtotal, harvest details, collection options and seller information. Comparison IDs persist on the device; full records are fetched on restore and refreshed before the comparison table opens. Unavailable records cannot be used to place orders. Sharing uses the device share sheet, with clipboard and manual-copy fallbacks. These features do not publish example crops or imply current stock for sample imagery.

@@ -113,3 +113,11 @@ export const money = (paise: number) =>
     currency: "INR",
     maximumFractionDigits: 2,
   }).format(paise / 100);
+
+// Prices are stored as integer paise and quantities as thousandths of a unit.
+// Normalize both before multiplying so half-paise totals round consistently.
+export function produceSubtotal(price: number, quantity: number) {
+  return Math.round(
+    (Math.round(price * 100) * Math.round(quantity * 1000)) / 1000,
+  );
+}

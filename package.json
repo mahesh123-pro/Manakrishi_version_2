@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:booking": "node --test tests/booking.test.mjs",
-    "test:marketplace": "node --experimental-transform-types --test tests/marketplace.test.mjs",
+    "test:marketplace": "node --experimental-transform-types --test tests/marketplace.test.mjs tests/marketplace-browse.test.mjs",
     "marketplace:admin": "node --experimental-transform-types scripts/marketplace-admin.mjs",
     "test:marketplace:http": "node --experimental-transform-types tests/marketplace-http.mjs",
     "marketplace:migrate": "node --experimental-transform-types scripts/marketplace-migrate.mjs",

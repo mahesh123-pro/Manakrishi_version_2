@@ -2,9 +2,21 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Minus, Plus, ShoppingBag, BadgeCheck } from "lucide-react";
+import {
+  MapPin,
+  Minus,
+  Plus,
+  ShoppingBag,
+  BadgeCheck,
+  Columns3,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { money, type Listing, type CartItem } from "@/lib/marketplace/types";
+import {
+  money,
+  produceSubtotal,
+  type Listing,
+  type CartItem,
+} from "@/lib/marketplace/types";
 import {
   useMarket,
   AuthGate,
@@ -13,7 +25,10 @@ import {
   Skeleton,
 } from "./MarketProvider";
 import { ProductCard } from "./ProductCard";
+import { ShareButton } from "./ShareButton";
+import { useComparison } from "./Comparison";
 export function Product({ id }: { id: string }) {
+  const comparison = useComparison();
   const { api, c, notice, changed } = useMarket(),
     router = useRouter();
   const [l, setL] = useState<Listing | null>(null),
@@ -248,7 +263,7 @@ export function Product({ id }: { id: string }) {
           </label>
           <p aria-live="polite" className="mt-4 text-sm">
             {c("Produce subtotal", "పంట ఉపమొత్తం")}:{" "}
-            <b>{money(Math.round(l.price * 100 * quantity))}</b>
+            <b>{money(produceSubtotal(l.price, quantity))}</b>
           </p>
           {!valid && (
             <p className="mk-error mt-3">
@@ -287,6 +302,22 @@ export function Product({ id }: { id: string }) {
             >
               {c("Save crop", "పంట సేవ్ చేయి")}
             </button>
+            <button
+              type="button"
+              className="mk-secondary"
+              disabled={comparison.busy || l.status !== "published"}
+              aria-pressed={comparison.items.some((item) => item.id === id)}
+              onClick={() => comparison.toggle(l)}
+            >
+              <Columns3 size={15} />
+              {comparison.items.some((item) => item.id === id)
+                ? c("Remove comparison", "పోలిక తొలగించండి")
+                : c("Compare crop", "పంట పోల్చండి")}
+            </button>
+            <ShareButton
+              path={`/marketplace/product/${id}`}
+              title={`${l.crop} · Manakrishi`}
+            />
           </div>
           <p className="mt-4 text-[11px] leading-6 text-muted">
             {c(
@@ -438,7 +469,7 @@ function CartInner({ checkout }: { checkout: boolean }) {
   );
   const total =
     items?.reduce(
-      (n, i) => n + Math.round((i.listing?.price || 0) * 100 * i.quantity),
+      (n, i) => n + produceSubtotal(i.listing?.price || 0, i.quantity),
       0,
     ) || 0;
   async function update(id: string, quantity: number) {
@@ -580,14 +611,13 @@ function CartInner({ checkout }: { checkout: boolean }) {
                       onBlur={(e) => {
                         const quantity = Number(e.target.value);
                         e.currentTarget.value = String(item.quantity);
-                        if (quantity !== item.quantity) update(item.listingId, quantity);
+                        if (quantity !== item.quantity)
+                          update(item.listingId, quantity);
                       }}
                     />
                   </label>
                   <span className="text-sm font-semibold">
-                    {money(
-                      Math.round(item.listing.price * 100 * item.quantity),
-                    )}
+                    {money(produceSubtotal(item.listing.price, item.quantity))}
                   </span>
                 </>
               ) : (

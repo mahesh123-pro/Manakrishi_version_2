@@ -1,9 +1,21 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, MapPin, ArrowUpRight, BadgeCheck } from "lucide-react";
+import {
+  Heart,
+  MapPin,
+  ArrowUpRight,
+  BadgeCheck,
+  Columns3,
+} from "lucide-react";
 import { money, type Listing } from "@/lib/marketplace/types";
 import { useMarket } from "./MarketProvider";
+import { useComparison } from "./Comparison";
+import { ShareButton } from "./ShareButton";
+import {
+  cropPricePerKg,
+  minimumProduceCost,
+} from "@/lib/marketplace/browse-tools";
 export function ProductCard({
   listing: l,
   onRemove,
@@ -12,6 +24,8 @@ export function ProductCard({
   onRemove?: () => void;
 }) {
   const { c, api, notice, changed } = useMarket();
+  const comparison = useComparison();
+  const comparing = comparison.items.some((item) => item.id === l.id);
   async function wish() {
     try {
       await api("wishlist", { listingId: l.id, remove: Boolean(onRemove) });
@@ -83,6 +97,16 @@ export function ProductCard({
             / {l.unit}
           </span>
         </p>
+        {l.unit !== "kg" && (
+          <p className="-mt-2 mb-3 text-xs text-muted">
+            {money(Math.round(cropPricePerKg(l) * 100))} /{" "}
+            {c("kg equivalent", "కిలో సమాన ధర")}
+          </p>
+        )}
+        <p className="mb-3 text-[11px] text-muted">
+          {c("Minimum produce subtotal", "కనీస పంట ఉపమొత్తం")}:{" "}
+          <b>{money(minimumProduceCost(l))}</b>
+        </p>
         <div className="flex gap-3 border-y border-green/10 py-3 text-[11px]">
           <span>
             {c("Available", "స్టాక్")}:{" "}
@@ -136,6 +160,24 @@ export function ProductCard({
           <Link href={`/marketplace/product/${l.id}`} className="mk-secondary">
             {c("Details", "వివరాలు")}
           </Link>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="mk-secondary"
+            aria-pressed={comparing}
+            disabled={comparison.busy || l.status !== "published"}
+            onClick={() => comparison.toggle(l)}
+          >
+            <Columns3 size={14} />
+            {comparing
+              ? c("Remove comparison", "పోలిక తొలగించండి")
+              : c("Compare crop", "పంట పోల్చండి")}
+          </button>
+          <ShareButton
+            path={`/marketplace/product/${l.id}`}
+            title={`${l.crop} · Manakrishi`}
+          />
         </div>
       </div>
     </article>

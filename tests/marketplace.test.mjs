@@ -451,3 +451,14 @@ test("admin workflow: queue overview, unpublish, enquiry replies and access boun
   );
   assert(overview.users.some((u) => u.id === farmer.id));
 });
+
+test("fractional checkout rounds integer paise consistently with crop comparison", async () => {
+  const customer = await makeUser();
+  const l = await listing({ price: 0.29, minimum: 0.5, quantity: 2 });
+  const [id] = await checkout(customer, l, 0.5);
+  const order = (await m.orders(customer)).find((o) => o.id === id);
+  assert.equal(order.total, 15);
+  assert.equal(order.items[0].subtotal, 15);
+  assert.equal(order.items[0].price, 29);
+  assert.equal((await m.getListing(l.id)).quantity, 1.5);
+});
