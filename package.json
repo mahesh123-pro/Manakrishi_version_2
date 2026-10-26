@@ -13,7 +13,7 @@
     "marketplace:admin": "node --experimental-transform-types scripts/marketplace-admin.mjs",
     "test:marketplace:http": "node --experimental-transform-types tests/marketplace-http.mjs",
     "marketplace:migrate": "node --experimental-transform-types scripts/marketplace-migrate.mjs",
-    "test:admin-booking": "node --test tests/admin-booking.test.mjs"
+    "test:admin-booking": "node --test tests/admin-booking.test.mjs tests/admin-booking-tools.test.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.6",

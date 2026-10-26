@@ -135,3 +135,9 @@ GET /api/admin/bookings returns 50 records plus an ID cursor. Filters/search app
 Booking administration updates primary Firestore records only. Existing RTDB/Sheets submission mirrors and WhatsApp automation are not changed or automatically synchronized by these actions. Dispatch updates do not send messages or trigger Razorpay captures/refunds; reconcile advances separately before cancellation. Configure audit collection access rules to deny public client writes/reads; use the server credential.
 
 Validation: npm run test:admin-booking checks assignment requirements, schedule validation, terminal states and forbidden shortcuts. The HTTP suite checks admin-only booking endpoint access and explicit missing-credential handling. Real Firestore operations must also be verified after credentials are configured; no live customer bookings are changed during the disconnected checks.
+
+### Booking desk tools
+
+The service-booking desk includes queues for active jobs today (Asia/Kolkata), jobs past their service date, and jobs missing operator details. Date filters use the scheduled date or fall back to the requested date. Search, service/status/date filters, queues and sorting apply to loaded records; use Load more for additional records. CSV exports include only the visible filtered records, neutralize spreadsheet formula prefixes, and include private contact information for authorized operational use.
+
+Customer WhatsApp links prepare messages for a staff member to review and send. Calls and calendar downloads are manual actions. Calendar files include a scheduled start in UTC converted from IST, without an assumed duration or automatic synchronization. Warnings identify matching operator phone/date/start-time values among loaded active records; they do not check job durations, prevent assignments, or replace schedule confirmation.

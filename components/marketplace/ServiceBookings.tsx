@@ -1,29 +1,39 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { CalendarDays, Tractor, X, RefreshCw } from "lucide-react";
+import {
+  CalendarDays,
+  Tractor,
+  X,
+  RefreshCw,
+  Download,
+  Phone,
+  MessageCircle,
+  AlertTriangle,
+} from "lucide-react";
 import { nextBookingStates } from "@/lib/admin/booking-rules";
+import {
+  activeBooking,
+  bookingCalendar,
+  bookingConflicts,
+  bookingPhone,
+  bookingsCsv,
+  indiaDate,
+  serviceDate,
+  type AdminBooking as Booking,
+} from "@/lib/admin/booking-tools";
 import { useMarket, Empty, Skeleton } from "./MarketProvider";
-type Booking = {
-  id: string;
-  fullname: string;
-  mobile: string;
-  village: string;
-  date: string;
-  crop: string;
-  acres: string;
-  serviceType: string;
-  chemicalOrImplement: string;
-  preferredTime: string;
-  contactPreference: string;
-  notes: string;
-  status: string;
-  operatorName: string;
-  operatorPhone: string;
-  scheduledDate: string;
-  scheduledTime: string;
-  reviewNote: string;
-  updatedAt: string;
-};
+type Queue = "all" | "today" | "past" | "unassigned";
+
+function downloadFile(content: string, name: string, type: string) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 type Result = { items: Booking[]; cursor: string; hasMore: boolean };
 const messages: Record<string, string> = {
   booking_backend_unconfigured:
@@ -61,6 +71,12 @@ export function ServiceBookings() {
     [retry, setRetry] = useState(0),
     [search, setSearch] = useState(""),
     [filter, setFilter] = useState("all");
+  const [queue, setQueue] = useState<Queue>("all");
+  const [service, setService] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [sort, setSort] = useState("date_asc");
+  const [refreshedAt, setRefreshedAt] = useState("");
   const [selected, setSelected] = useState<Booking | null>(null),
     [target, setTarget] = useState(""),
     [formError, setFormError] = useState("");
@@ -73,6 +89,7 @@ export function ServiceBookings() {
         if (alive) {
           setResult(data);
           setError("");
+          setRefreshedAt(new Date().toISOString());
         }
       })
       .catch((e) => {
@@ -98,9 +115,14 @@ export function ServiceBookings() {
       );
       setResult((prev) => ({
         ...data,
-        items: [...(prev?.items || []), ...data.items],
+        items: [
+          ...new Map(
+            [...(prev?.items || []), ...data.items].map((b) => [b.id, b]),
+          ).values(),
+        ],
       }));
       setError("");
+      setRefreshedAt(new Date().toISOString());
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -129,17 +151,57 @@ export function ServiceBookings() {
       setBusy(false);
     }
   }
-  const items = (result?.items || [])
+  const loaded = result?.items || [];
+  const today = indiaDate();
+  const inQueue = (b: Booking, value: Queue) => {
+    if (value === "all") return true;
+    if (!activeBooking(b)) return false;
+    if (value === "today") return serviceDate(b) === today;
+    if (value === "past")
+      return Boolean(serviceDate(b)) && serviceDate(b) < today;
+    return !b.operatorName || !bookingPhone(b.operatorPhone);
+  };
+  const conflicts = bookingConflicts(loaded);
+  const invalidRange = Boolean(from && to && from > to);
+  const items = loaded
     .filter(
       (b) =>
         (filter === "all" || b.status === filter) &&
-        `${b.fullname} ${b.mobile} ${b.village} ${b.crop} ${b.id} ${b.operatorName}`
+        inQueue(b, queue) &&
+        (!service || (b.serviceType || "unspecified") === service) &&
+        !invalidRange &&
+        (!from || (Boolean(serviceDate(b)) && serviceDate(b) >= from)) &&
+        (!to || (Boolean(serviceDate(b)) && serviceDate(b) <= to)) &&
+        `${b.fullname} ${b.mobile} ${b.village} ${b.crop} ${b.id} ${b.operatorName} ${b.serviceType}`
           .toLowerCase()
           .includes(search.toLowerCase().trim()),
     )
-    .sort((a, b) =>
-      (a.scheduledDate || a.date).localeCompare(b.scheduledDate || b.date),
-    );
+    .sort((a, b) => {
+      if (sort === "customer")
+        return a.fullname.localeCompare(b.fullname) || a.id.localeCompare(b.id);
+      const first = serviceDate(a),
+        second = serviceDate(b);
+      if (!first || !second)
+        return first ? -1 : second ? 1 : a.id.localeCompare(b.id);
+      const compare = `${first} ${a.scheduledTime}`.localeCompare(
+        `${second} ${b.scheduledTime}`,
+      );
+      return (
+        (sort === "date_desc" ? -compare : compare) || a.id.localeCompare(b.id)
+      );
+    });
+  const services = [
+    ...new Set(loaded.map((b) => b.serviceType || "unspecified")),
+  ].sort();
+  function clearFilters() {
+    setSearch("");
+    setFilter("all");
+    setQueue("all");
+    setService("");
+    setFrom("");
+    setTo("");
+    setSort("date_asc");
+  }
   return (
     <>
       <section className="admin-panel mb-5">
@@ -196,6 +258,35 @@ export function ServiceBookings() {
       ) : (
         result && (
           <>
+            <div
+              className="admin-stats mb-5"
+              aria-label={c("Booking queues", "బుకింగ్ జాబితాలు")}
+            >
+              {(
+                [
+                  ["all", "All loaded", "లోడ్ చేసినవి"],
+                  ["today", "Today · active", "ఈ రోజు · క్రియాశీలం"],
+                  ["past", "Past service date", "సేవా తేదీ దాటినవి"],
+                  ["unassigned", "Needs assignment", "కేటాయించవలసినవి"],
+                ] as const
+              ).map(([value, en, te]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`admin-stat text-left ${queue === value ? "!border-green !bg-green/5" : ""}`}
+                  aria-pressed={queue === value}
+                  onClick={() => {
+                    setQueue(value);
+                    setFilter("all");
+                  }}
+                >
+                  <span className="text-xs text-muted">{c(en, te)}</span>
+                  <strong className="mt-2 block text-3xl text-green">
+                    {loaded.filter((b) => inQueue(b, value)).length}
+                  </strong>
+                </button>
+              ))}
+            </div>
             <div className="admin-toolbar">
               <input
                 className="mk-input !mt-0 flex-1"
@@ -229,6 +320,20 @@ export function ServiceBookings() {
               </select>
               <button
                 className="mk-secondary"
+                disabled={busy || !items.length}
+                onClick={() =>
+                  downloadFile(
+                    bookingsCsv(items),
+                    `manakrishi-bookings-${today}.csv`,
+                    "text/csv;charset=utf-8",
+                  )
+                }
+              >
+                <Download size={15} />
+                {c("Export filtered CSV", "ఫిల్టర్ చేసిన CSV")}
+              </button>
+              <button
+                className="mk-secondary"
                 disabled={busy}
                 onClick={() => setRetry((x) => x + 1)}
               >
@@ -236,13 +341,106 @@ export function ServiceBookings() {
                 {c("Refresh bookings", "రిఫ్రెష్")}
               </button>
             </div>
-            <p className="mb-4 text-xs text-muted">
-              {result.items.length}{" "}
-              {c(
-                "loaded bookings. Load more to include additional records in search.",
-                "లోడ్ చేసిన బుకింగ్‌లు. మరిన్ని వివరాల కోసం మరిన్ని లోడ్ చేయండి.",
-              )}
-            </p>
+            <div className="admin-panel mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <label className="mk-label">
+                {c("Service type", "సేవా రకం")}
+                <select
+                  className="mk-input"
+                  value={service}
+                  onChange={(e) => setService(e.target.value)}
+                >
+                  <option value="">{c("All services", "అన్ని సేవలు")}</option>
+                  {services.map((value) => (
+                    <option key={value} value={value}>
+                      {value === "unspecified"
+                        ? c("Unspecified", "తెలియనిది")
+                        : value}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="mk-label">
+                {c("Service date from", "సేవా తేదీ నుండి")}
+                <input
+                  className="mk-input"
+                  type="date"
+                  value={from}
+                  max={to || undefined}
+                  onChange={(e) => setFrom(e.target.value)}
+                />
+              </label>
+              <label className="mk-label">
+                {c("Service date until", "సేవా తేదీ వరకు")}
+                <input
+                  className="mk-input"
+                  type="date"
+                  value={to}
+                  min={from || undefined}
+                  onChange={(e) => setTo(e.target.value)}
+                />
+              </label>
+              <label className="mk-label">
+                {c("Sort bookings", "బుకింగ్‌ల క్రమం")}
+                <select
+                  className="mk-input"
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                >
+                  <option value="date_asc">
+                    {c(
+                      "Service date · oldest first",
+                      "సేవా తేదీ · పాతవి ముందు",
+                    )}
+                  </option>
+                  <option value="date_desc">
+                    {c(
+                      "Service date · latest first",
+                      "సేవా తేదీ · కొత్తవి ముందు",
+                    )}
+                  </option>
+                  <option value="customer">
+                    {c("Customer name", "కస్టమర్ పేరు")}
+                  </option>
+                </select>
+              </label>
+              <p className="text-xs leading-5 text-muted sm:col-span-2 xl:col-span-4">
+                {c(
+                  "Dates use the scheduled date, or the requested date when no schedule exists. Queues and exports cover loaded records only. CSV files contain customer contact details; share them only with authorized staff.",
+                  "షెడ్యూల్ తేదీ లేదా అది లేకపోతే కోరిన తేదీని ఉపయోగిస్తాము. జాబితాలు, ఎగుమతులు లోడ్ చేసిన రికార్డులకు మాత్రమే. CSVలో కస్టమర్ సంప్రదింపు వివరాలు ఉంటాయి; అధికారం ఉన్న సిబ్బందితో మాత్రమే పంచుకోండి.",
+                )}
+              </p>
+            </div>
+            {invalidRange && (
+              <p role="alert" className="mk-error mb-4">
+                {c(
+                  "Choose an end date on or after the start date.",
+                  "ముగింపు తేదీ ప్రారంభ తేదీ తర్వాత ఉండాలి.",
+                )}
+              </p>
+            )}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="mb-4 text-xs text-muted">
+                {items.length} / {result.items.length}{" "}
+                {c(
+                  "loaded bookings shown. Load more to search additional records.",
+                  "లోడ్ చేసిన బుకింగ్‌లు చూపుతున్నాము. మరిన్ని వివరాల కోసం మరిన్ని లోడ్ చేయండి.",
+                )}
+                {refreshedAt && (
+                  <span className="mt-1 block">
+                    {c("Last loaded", "చివరిసారి లోడ్ చేసినది")}:{" "}
+                    {new Date(refreshedAt).toLocaleString("en-IN", {
+                      timeZone: "Asia/Kolkata",
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}{" "}
+                    IST
+                  </span>
+                )}
+              </p>
+              <button className="mk-secondary" onClick={clearFilters}>
+                {c("Clear all filters", "అన్ని ఫిల్టర్లు తొలగించండి")}
+              </button>
+            </div>
             {!items.length && (
               <Empty
                 title={c("No matching bookings", "సరిపోయే బుకింగ్‌లు లేవు")}
@@ -301,18 +499,83 @@ export function ServiceBookings() {
                       {b.reviewNote}
                     </p>
                   )}
-                  {nextBookingStates(b.status).length > 0 && (
-                    <button
-                      className="mk-btn mt-4"
-                      onClick={() => {
-                        setSelected(b);
-                        setTarget(b.status);
-                        setFormError("");
-                      }}
-                    >
-                      {c("Manage booking", "బుకింగ్ నిర్వహించు")}
-                    </button>
+                  {conflicts.has(b.id) && (
+                    <p className="mt-3 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                      <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                      {c(
+                        "Another loaded active booking has this operator and start time. Review both schedules; job durations are not checked.",
+                        "ఈ ఆపరేటర్, ప్రారంభ సమయంతో మరో క్రియాశీల బుకింగ్ ఉంది. రెండు షెడ్యూల్‌లను పరిశీలించండి; పని వ్యవధిని తనిఖీ చేయడం లేదు.",
+                      )}
+                    </p>
                   )}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {nextBookingStates(b.status).length > 0 && (
+                      <button
+                        className="mk-btn"
+                        disabled={busy}
+                        onClick={() => {
+                          setSelected(b);
+                          setTarget(b.status);
+                          setFormError("");
+                        }}
+                      >
+                        {c("Manage booking", "బుకింగ్ నిర్వహించు")}
+                      </button>
+                    )}
+                    {bookingPhone(b.mobile) && (
+                      <>
+                        <a
+                          className="mk-secondary"
+                          href={`tel:+${bookingPhone(b.mobile)}`}
+                          aria-label={c(
+                            `Call customer ${b.fullname}`,
+                            `కస్టమర్ ${b.fullname}కు కాల్ చేయండి`,
+                          )}
+                        >
+                          <Phone size={14} />
+                          {c("Call customer", "కస్టమర్‌కు కాల్")}
+                        </a>
+                        <a
+                          className="mk-secondary"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          href={`https://wa.me/${bookingPhone(b.mobile)}?text=${encodeURIComponent(`Hello ${b.fullname}, this is Manakrishi regarding your ${b.serviceType || "farm service"} booking (${b.id}) at ${b.village}.${b.scheduledDate ? ` Scheduled: ${b.scheduledDate} ${b.scheduledTime} IST.` : ""} Please confirm your availability.`)}`}
+                        >
+                          <MessageCircle size={14} />
+                          {c(
+                            "Prepare WhatsApp",
+                            "వాట్సాప్ సందేశం సిద్ధం చేయండి",
+                          )}
+                        </a>
+                      </>
+                    )}
+                    {bookingPhone(b.operatorPhone) && (
+                      <a
+                        className="mk-secondary"
+                        href={`tel:+${bookingPhone(b.operatorPhone)}`}
+                      >
+                        <Phone size={14} />
+                        {c("Call operator", "ఆపరేటర్‌కు కాల్")}
+                      </a>
+                    )}
+                    {bookingCalendar(b) && (
+                      <button
+                        className="mk-secondary"
+                        onClick={() => {
+                          const calendar = bookingCalendar(b);
+                          if (calendar)
+                            downloadFile(
+                              calendar,
+                              `manakrishi-${b.id.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 60)}.ics`,
+                              "text/calendar;charset=utf-8",
+                            );
+                        }}
+                      >
+                        <CalendarDays size={14} />
+                        {c("Download calendar", "క్యాలెండర్ డౌన్‌లోడ్")}
+                      </button>
+                    )}
+                  </div>
                 </article>
               ))}
             </div>
