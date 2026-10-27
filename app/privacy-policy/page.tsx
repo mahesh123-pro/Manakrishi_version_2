@@ -48,6 +48,16 @@ export default function PrivacyPage() {
         </p>
       </LegalSection>
 
+      <LegalSection heading="Marketplace and FPO access">
+        <p>
+          Marketplace account details are used to support crop listings and buyer-seller connections.
+          Accounts that an administrator enables for an FPO may view active farmer and buyer names,
+          sign-in email addresses, locations, published crop listings and business phone numbers that
+          members chose to share publicly. FPO access does not include passwords, private order details,
+          or account-management controls.
+        </p>
+      </LegalSection>
+
       <LegalSection heading="Your choices">
         <p>
           You may request access to, correction of, or deletion of your personal information at any time

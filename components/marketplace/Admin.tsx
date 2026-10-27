@@ -236,7 +236,9 @@ function Workspace() {
           ? u.suspended
           : filter === "unverified"
             ? u.role === "farmer" && !u.verified
-            : u.role === filter)) &&
+            : filter === "fpo"
+              ? Boolean(u.fpo)
+              : u.role === filter)) &&
       matches(u.name, u.email, u.id),
   );
   const orders = data.orders.filter(
@@ -279,7 +281,7 @@ function Workspace() {
       "rejected",
       "unavailable",
     ],
-    users: ["farmer", "buyer", "admin", "unverified", "suspended"],
+    users: ["farmer", "buyer", "admin", "fpo", "unverified", "suspended"],
     orders: [
       "awaiting_confirmation",
       "confirmed",
@@ -680,6 +682,7 @@ function Workspace() {
                       </div>
                       <div className="flex flex-wrap items-start gap-2">
                         <Badge value={u.suspended ? "suspended" : "active"} />
+                        {Boolean(u.fpo) && <Badge value="FPO access" />}
                         {u.role === "farmer" && (
                           <Badge
                             value={u.verified ? "verified" : "unverified"}
@@ -688,6 +691,20 @@ function Workspace() {
                       </div>
                     </div>
                     <div className="admin-actions">
+                      {u.role !== "admin" && (
+                        <>
+                          {actionButton(
+                            u.id,
+                            u.fpo ? "revoke-fpo" : "grant-fpo",
+                            c(
+                              u.fpo ? "Remove FPO access" : "Enable FPO login",
+                              u.fpo
+                                ? "FPO ప్రవేశం తొలగించు"
+                                : "FPO లాగిన్ ప్రారంభించు",
+                            ),
+                          )}
+                        </>
+                      )}
                       {u.role === "farmer" && (
                         <>
                           <Link

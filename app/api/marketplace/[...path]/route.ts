@@ -144,6 +144,7 @@ export async function GET(
         ...(await service.adminOverview(user)),
         settings: await service.settings(),
       });
+    if (path[0] === "fpo") return json(await service.fpoOverview(user));
     return json({ error: "not_found" }, 404);
   } catch (error) {
     return handleError(error);

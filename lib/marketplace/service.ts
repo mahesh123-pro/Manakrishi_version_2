@@ -907,10 +907,10 @@ export async function fpoOverview(user: User) {
   requireValue(user.role === "fpo", "forbidden", 403);
   return {
     members: await all(
-      "SELECT id,name,email,role,verified,suspended,village,district,state,publicContact,createdAt FROM users WHERE role IN ('farmer','buyer') AND suspended=0 ORDER BY role,name",
+      "SELECT u.id,u.name,u.email,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.publicContact,u.createdAt FROM users u WHERE u.role IN ('farmer','buyer') AND u.suspended=0 AND NOT EXISTS(SELECT 1 FROM fpo_access f WHERE f.userId=u.id) ORDER BY u.role,u.name",
     ),
     crops: await all(
-      "SELECT l.id,l.crop,l.category,l.status,l.quantity,l.unit,l.price,l.createdAt,u.id sellerId,u.name seller,u.village,u.district,u.state FROM listings l JOIN users u ON u.id=l.sellerId WHERE l.status!='deleted' AND u.suspended=0 ORDER BY l.createdAt DESC LIMIT 200",
+      "SELECT l.id,l.crop,l.category,l.status,l.quantity,l.unit,l.price,l.createdAt,u.id sellerId,u.name seller,u.village,u.district,u.state FROM listings l JOIN users u ON u.id=l.sellerId WHERE l.status='published' AND u.suspended=0 ORDER BY l.createdAt DESC LIMIT 200",
     ),
   };
 }

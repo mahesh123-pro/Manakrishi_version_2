@@ -25,6 +25,7 @@ export type User = {
   photo: string;
   publicContact: string;
   suspended: number;
+  fpo?: number;
 };
 export type ListingInput = {
   crop: string;

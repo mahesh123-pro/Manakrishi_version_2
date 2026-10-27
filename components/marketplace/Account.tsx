@@ -50,12 +50,16 @@ export function Account() {
                   ? "Farmer"
                   : user.role === "admin"
                     ? "Administrator"
-                    : "Buyer",
+                    : user.role === "fpo"
+                      ? "FPO"
+                      : "Buyer",
                 user.role === "farmer"
                   ? "రైతు"
                   : user.role === "admin"
                     ? "అడ్మిన్"
-                    : "కొనుగోలుదారు",
+                    : user.role === "fpo"
+                      ? "FPO"
+                      : "కొనుగోలుదారు",
               )}
             </p>
             <div className="mt-5 flex gap-3">
@@ -65,6 +69,11 @@ export function Account() {
               <Link href="/marketplace/orders" className="mk-secondary">
                 {c("My orders", "నా ఆర్డర్లు")}
               </Link>
+              {user.role === "fpo" && (
+                <Link href="/fpo" className="mk-secondary">
+                  {c("FPO member desk", "FPO సభ్యుల డెస్క్")}
+                </Link>
+              )}
             </div>
           </div>
           {user.role === "farmer" && <Profile user={user} />}
@@ -173,6 +182,12 @@ export function Account() {
             {c("Need account help?", "ఖాతా సహాయం కావాలా?")}{" "}
             <Link href="/support" className="underline">
               {c("Contact support", "సహాయం పొందండి")}
+            </Link>
+          </p>
+          <p className="mt-3 text-xs text-muted">
+            {c("FPO member?", "FPO సభ్యులా?")}{" "}
+            <Link href="/fpo" className="underline">
+              {c("Sign in to the FPO desk", "FPO డెస్క్‌లోకి సైన్ ఇన్ చేయండి")}
             </Link>
           </p>
         </form>

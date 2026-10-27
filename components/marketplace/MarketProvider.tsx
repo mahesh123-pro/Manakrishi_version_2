@@ -356,6 +356,11 @@ export function MarketProvider({ children }: { children: ReactNode }) {
                   {c("Admin", "అడ్మిన్")}
                 </Link>
               )}
+              {user?.role === "fpo" && (
+                <Link href="/fpo" className="mk-secondary">
+                  {c("FPO desk", "FPO డెస్క్")}
+                </Link>
+              )}
               <Link href="/marketplace/sell" className="mk-btn">
                 {c("Sell your harvest", "మీ పంట అమ్మండి")}
                 <ArrowUpRight size={16} />
@@ -489,10 +494,12 @@ export function AuthGate({
   children,
   farmer = false,
   admin = false,
+  fpo = false,
 }: {
   children: ReactNode;
   farmer?: boolean;
   admin?: boolean;
+  fpo?: boolean;
 }) {
   const { user, loading, c } = useMarket();
   if (loading) return <Skeleton />;
@@ -511,17 +518,25 @@ export function AuthGate({
         }
       />
     );
-  if ((farmer && user.role !== "farmer") || (admin && user.role !== "admin"))
+  if (
+    (farmer && user.role !== "farmer") ||
+    (admin && user.role !== "admin") ||
+    (fpo && user.role !== "fpo")
+  )
     return (
       <Empty
         title={c("Access restricted", "ప్రవేశం పరిమితం")}
         body={c(
           farmer
             ? "Use a farmer account to list produce."
-            : "This area is for marketplace administrators.",
+            : fpo
+              ? "An FPO account must be enabled by a marketplace administrator."
+              : "This area is for marketplace administrators.",
           farmer
             ? "పంటలు అమ్మడానికి రైతు ఖాతా వాడండి."
-            : "ఇది మార్కెట్ అడ్మిన్ల కోసం.",
+            : fpo
+              ? "మార్కెట్ అడ్మిన్ FPO ఖాతాను ప్రారంభించాలి."
+              : "ఇది మార్కెట్ అడ్మిన్ల కోసం.",
         )}
       />
     );
