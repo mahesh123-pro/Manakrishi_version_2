@@ -11,7 +11,7 @@ export const CATEGORIES = [
   ["organic", "Organic produce", "సేంద్రియ ఉత్పత్తులు", "drone-orchard.png"],
 ] as const;
 export const UNITS = { kg: 1, quintal: 100, tonne: 1000 } as const;
-export type Role = "buyer" | "farmer" | "admin";
+export type Role = "buyer" | "farmer" | "admin" | "fpo";
 export type User = {
   id: string;
   name: string;

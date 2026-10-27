@@ -834,6 +834,21 @@ export async function moderate(user: User, input: Record<string, unknown>) {
         action === "suspend" ? 1 : 0,
         id,
       );
+    } else if (action === "grant-fpo" || action === "revoke-fpo") {
+      requireValue(id !== user.id && reason.length > 0, "reason_required");
+      const member = await one<{ id: string; role: string }>(
+        "SELECT id,role FROM users WHERE id=? AND role IN ('buyer','farmer')",
+        id,
+      );
+      requireValue(member, "not_found", 404);
+      if (action === "grant-fpo")
+        await run(
+          "INSERT INTO fpo_access(userId,grantedBy,grantedAt) VALUES(?,?,?) ON CONFLICT(userId) DO NOTHING",
+          id,
+          user.id,
+          new Date().toISOString(),
+        );
+      else await run("DELETE FROM fpo_access WHERE userId=?", id);
     } else if (action === "resolve") {
       requireValue(reason.length > 0, "reason_required");
       await run(
@@ -855,7 +870,7 @@ export async function adminOverview(user: User) {
       )
     ).map((r) => listingFrom(r, true)),
     users: await all(
-      "SELECT id,name,email,role,verified,suspended,village,district,state,createdAt FROM users ORDER BY createdAt DESC",
+      "SELECT u.id,u.name,u.email,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.createdAt,CASE WHEN f.userId IS NOT NULL THEN 1 ELSE 0 END AS fpo FROM users u LEFT JOIN fpo_access f ON f.userId=u.id ORDER BY u.createdAt DESC",
     ),
     reports: await all(
       "SELECT r.*,l.crop,u.name reporter FROM reports r JOIN listings l ON l.id=r.listingId JOIN users u ON u.id=r.userId ORDER BY r.createdAt DESC",
@@ -885,5 +900,17 @@ export async function adminOverview(user: User) {
         "SELECT COALESCE(SUM(total),0) n FROM orders WHERE status='delivered'",
       ))!.n,
     },
+  };
+}
+
+export async function fpoOverview(user: User) {
+  requireValue(user.role === "fpo", "forbidden", 403);
+  return {
+    members: await all(
+      "SELECT id,name,email,role,verified,suspended,village,district,state,publicContact,createdAt FROM users WHERE role IN ('farmer','buyer') AND suspended=0 ORDER BY role,name",
+    ),
+    crops: await all(
+      "SELECT l.id,l.crop,l.category,l.status,l.quantity,l.unit,l.price,l.createdAt,u.id sellerId,u.name seller,u.village,u.district,u.state FROM listings l JOIN users u ON u.id=l.sellerId WHERE l.status!='deleted' AND u.suspended=0 ORDER BY l.createdAt DESC LIMIT 200",
+    ),
   };
 }

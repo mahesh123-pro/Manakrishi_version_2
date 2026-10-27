@@ -53,7 +53,7 @@ export async function sessionUser(token?: string): Promise<User | null> {
   if (!token) return null;
   return (
     (await one<User>(
-      "SELECT u.id,u.email,u.name,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.bio,u.photo,u.publicContact FROM users u JOIN sessions s ON s.userId=u.id WHERE s.hash=? AND s.expires>? AND u.suspended=0",
+      "SELECT u.id,u.email,u.name,CASE WHEN f.userId IS NOT NULL THEN 'fpo' ELSE u.role END AS role,u.verified,u.suspended,u.village,u.district,u.state,u.bio,u.photo,u.publicContact FROM users u JOIN sessions s ON s.userId=u.id LEFT JOIN fpo_access f ON f.userId=u.id WHERE s.hash=? AND s.expires>? AND u.suspended=0",
       tokenHash(token),
       Date.now(),
     )) || null
