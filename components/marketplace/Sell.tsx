@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Upload, X, Eye, Navigation } from "lucide-react";
+import { Upload, X, Eye } from "lucide-react";
 import {
   CATEGORIES,
   money,
@@ -220,8 +220,8 @@ function SellForm() {
           id ? "మీ పంట నవీకరించండి" : "మీ పంట. విస్తృత మార్కెట్.",
         )}
         body={c(
-          "Add honest details and your own crop photos. You control your price, quantities and fulfillment.",
-          "నిజమైన వివరాలు, మీ పంట చిత్రాలు జోడించండి. ధర, పరిమాణం, డెలివరీ మీ నియంత్రణలో.",
+          "Add the required crop details and your own photos. Set your price, quantity and pickup address.",
+          "అవసరమైన పంట వివరాలు, మీ చిత్రాలు జోడించండి. ధర, పరిమాణం మరియు పికప్ చిరునామా ఇవ్వండి.",
         )}
       />
       <div className="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -235,7 +235,7 @@ function SellForm() {
           <fieldset disabled={busy || uploading} className="min-w-0 space-y-7">
             <div>
               <h2 className="font-heading text-xl font-semibold">
-                {c("Let buyers see your harvest", "మీ పంటను చూపించండి")}
+                {c("Let buyers see your harvest", "మీ పంటను చూపించండి")} *
               </h2>
               <p className="mt-2 text-xs leading-6 text-muted">
                 {c(
@@ -300,7 +300,10 @@ function SellForm() {
                 <select
                   className="mk-input"
                   value={form.category}
-                  onChange={(e) => set("category", e.target.value)}
+                  onChange={(e) => {
+                    set("category", e.target.value);
+                    set("organic", e.target.value === "organic");
+                  }}
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat[0]} value={cat[0]}>
@@ -329,51 +332,53 @@ function SellForm() {
                   </option>
                 </select>
               </label>
-              {fields.map(([key, en, te, type, required]) => (
-                <label key={key} className="mk-label">
-                  {c(en, te)} {required && "*"}
-                  <input
-                    className="mk-input"
-                    value={String(form[key] ?? "")}
-                    onChange={(e) =>
-                      set(
-                        key,
+              {fields
+                .filter((field) => field[4])
+                .map(([key, en, te, type, required]) => (
+                  <label key={key} className="mk-label">
+                    {c(en, te)} {required && "*"}
+                    <input
+                      className="mk-input"
+                      value={String(form[key] ?? "")}
+                      onChange={(e) =>
+                        set(
+                          key,
+                          type === "number"
+                            ? Number(e.target.value)
+                            : (e.target.value as never),
+                        )
+                      }
+                      type={type}
+                      required={required}
+                      min={
                         type === "number"
-                          ? Number(e.target.value)
-                          : (e.target.value as never),
-                      )
-                    }
-                    type={type}
-                    required={required}
-                    min={
-                      type === "number"
-                        ? key === "price"
-                          ? 0.01
-                          : key === "minimum"
-                            ? 0.001
-                            : 0
-                        : undefined
-                    }
-                    max={type === "number" ? 1000000 : undefined}
-                    step={
-                      type === "number"
-                        ? key === "price"
-                          ? "0.01"
-                          : "0.001"
-                        : undefined
-                    }
-                    maxLength={
-                      key === "contact"
-                        ? 10
-                        : key === "pin"
-                          ? 6
-                          : key === "pickup"
-                            ? 500
-                            : 100
-                    }
-                  />
-                </label>
-              ))}
+                          ? key === "price"
+                            ? 0.01
+                            : key === "minimum"
+                              ? 0.001
+                              : 0
+                          : undefined
+                      }
+                      max={type === "number" ? 1000000 : undefined}
+                      step={
+                        type === "number"
+                          ? key === "price"
+                            ? "0.01"
+                            : "0.001"
+                          : undefined
+                      }
+                      maxLength={
+                        key === "contact"
+                          ? 10
+                          : key === "pin"
+                            ? 6
+                            : key === "pickup"
+                              ? 500
+                              : 100
+                      }
+                    />
+                  </label>
+                ))}
             </div>
             <label className="mk-label">
               {c("Describe your crop", "మీ పంట గురించి")} *
@@ -386,27 +391,6 @@ function SellForm() {
                 onChange={(e) => set("description", e.target.value)}
               />
             </label>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.negotiable}
-                  onChange={(e) => set("negotiable", e.target.checked)}
-                />
-                {c("Open to price enquiries", "ధర చర్చించవచ్చు")}
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={form.organic}
-                  onChange={(e) => set("organic", e.target.checked)}
-                />
-                {c(
-                  "Organically grown (seller declaration)",
-                  "సేంద్రియ సాగు (విక్రేత ప్రకటన)",
-                )}
-              </label>
-            </div>
             {form.organic && (
               <label className="mk-label">
                 {c(
@@ -423,84 +407,10 @@ function SellForm() {
                 />
               </label>
             )}
-            <label className="mk-label">
-              {c("Fulfillment you can arrange", "మీరు ఏర్పాటు చేసే డెలివరీ")}
-              <select
-                className="mk-input"
-                value={form.fulfillment}
-                onChange={(e) =>
-                  set(
-                    "fulfillment",
-                    e.target.value as ListingInput["fulfillment"],
-                  )
-                }
-              >
-                <option value="pickup">
-                  {c("Buyer pickup only", "కొనుగోలుదారు పికప్ మాత్రమే")}
-                </option>
-                <option value="delivery">
-                  {c(
-                    "Seller-arranged delivery",
-                    "విక్రేత ఏర్పాటు చేసే డెలివరీ",
-                  )}
-                </option>
-                <option value="both">
-                  {c(
-                    "Pickup or seller-arranged delivery",
-                    "పికప్ లేదా విక్రేత డెలివరీ",
-                  )}
-                </option>
-              </select>
-            </label>
-            <label className="mk-label">
-              {c(
-                "Buyer notes and delivery terms",
-                "కొనుగోలుదారుకు సూచనలు, డెలివరీ నిబంధనలు",
-              )}
-              <textarea
-                className="mk-input"
-                rows={3}
-                maxLength={1000}
-                value={form.notes}
-                onChange={(e) => set("notes", e.target.value)}
-              />
-            </label>
-            <button
-              type="button"
-              className="mk-secondary"
-              onClick={() =>
-                navigator.geolocation?.getCurrentPosition(
-                  (p) => {
-                    set("latitude", p.coords.latitude);
-                    set("longitude", p.coords.longitude);
-                    notice(
-                      c(
-                        "Private farm location saved. It is not displayed publicly.",
-                        "ప్రైవేట్ పొలం ప్రాంతం సేవ్ చేయబడింది. పబ్లిక్‌గా చూపబడదు.",
-                      ),
-                    );
-                  },
-                  () =>
-                    notice(
-                      c(
-                        "Location unavailable. Enter your village instead.",
-                        "ప్రాంతం అందుబాటులో లేదు. గ్రామం నమోదు చేయండి.",
-                      ),
-                    ),
-                  { timeout: 10000 },
-                )
-              }
-            >
-              <Navigation size={16} />
-              {c(
-                "Use my farm location (optional)",
-                "నా పొలం ప్రాంతం వాడండి (ఐచ్ఛికం)",
-              )}
-            </button>
             <p className="text-[11px] leading-6 text-muted">
               {c(
-                "Your private phone, exact pickup address and GPS coordinates are hidden from public listings. Sellers see buyer delivery details only for their own orders.",
-                "మీ ప్రైవేట్ ఫోన్, పికప్ చిరునామా, GPS పబ్లిక్ లిస్టింగ్‌లలో కనిపించవు. విక్రేతలు తమ ఆర్డర్ల కొనుగోలుదారు వివరాలు మాత్రమే చూడగలరు.",
+                "Your private phone and exact pickup address are hidden from public listings. New listings use buyer pickup. Sellers see buyer delivery details only for their own orders.",
+                "మీ ప్రైవేట్ ఫోన్, పికప్ చిరునామా పబ్లిక్ లిస్టింగ్‌లలో కనిపించవు. కొత్త లిస్టింగ్‌లకు కొనుగోలుదారు పికప్ ఉంటుంది. విక్రేతలు తమ ఆర్డర్ల వివరాలు మాత్రమే చూడగలరు.",
               )}
             </p>
             {error && (
