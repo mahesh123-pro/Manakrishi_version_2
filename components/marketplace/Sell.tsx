@@ -133,10 +133,10 @@ function SellForm() {
       setSuccess(
         c(
           action === "publish"
-            ? "Your harvest was sent for admin review. It will appear in the market after approval."
+            ? "Your harvest is published and available in the marketplace."
             : "Draft saved to your account.",
           action === "publish"
-            ? "మీ పంట అడ్మిన్ సమీక్షకు పంపబడింది. ఆమోదం తర్వాత మార్కెట్‌లో కనిపిస్తుంది."
+            ? "మీ పంట ప్రచురించబడింది. మార్కెట్‌లో అందుబాటులో ఉంది."
             : "డ్రాఫ్ట్ మీ ఖాతాలో సేవ్ చేయబడింది.",
         ),
       );
@@ -474,8 +474,8 @@ function SellForm() {
             </li>
             <li>
               {c(
-                "Publishing submits your listing for review. Changes to published listings need another review.",
-                "ప్రచురణ సమీక్షకు పంపుతుంది. ప్రచురించిన లిస్టింగ్ మార్పులకు మళ్లీ సమీక్ష అవసరం.",
+                "Publish your crop directly to the marketplace. Saved drafts stay private until you publish them.",
+                "మీ పంటను నేరుగా మార్కెట్‌లో ప్రచురించండి. ప్రచురించే వరకు డ్రాఫ్ట్‌లు గోప్యంగా ఉంటాయి.",
               )}
             </li>
           </ul>
@@ -538,7 +538,7 @@ function SellForm() {
           >
             {busy
               ? c("Submitting…", "పంపుతోంది…")
-              : c("Submit for publication", "ప్రచురణ కోసం పంపు")}
+              : c("Publish now", "ఇప్పుడే ప్రచురించు")}
           </button>
         </div>
       </dialog>

@@ -171,8 +171,8 @@ export function Account() {
           </fieldset>
           <p className="mt-5 text-xs leading-6 text-muted">
             {c(
-              "Your account does not automatically verify you as a seller. Listing and seller verification are reviewed separately.",
-              "ఖాతా సృష్టించినంత మాత్రాన విక్రేత ధృవీకరణ కాదు. లిస్టింగ్, విక్రేత ధృవీకరణ వేరుగా సమీక్షించబడతాయి.",
+              "Publish crop listings directly from your farmer account. A verified seller badge requires a separate administrator check.",
+              "రైతు ఖాతా నుండి పంటలను నేరుగా ప్రచురించండి. ధృవీకరించిన విక్రేత బ్యాడ్జ్ కోసం అడ్మిన్ తనిఖీ అవసరం.",
             )}{" "}
             <Link href="/privacy-policy" className="underline">
               {c("Privacy policy", "గోప్యతా విధానం")}

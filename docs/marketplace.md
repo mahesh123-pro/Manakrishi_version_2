@@ -34,7 +34,7 @@ No live listings, orders, reviews, statistics or verified users are seeded. The 
 
 Administrators cannot self-select that role during registration. On the trusted host, set `MARKETPLACE_ADMIN_EMAIL` and `MARKETPLACE_ADMIN_PASSWORD` (16–128 characters) in the process environment. Use the same `MARKETPLACE_DATA_DIR` as the website, then run `npm run marketplace:admin`. The command refuses to overwrite an existing account or silently upgrade its role. Clear the password environment variable afterwards. Sign in at `/marketplace/account`, then open `/admin/marketplace`.
 
-For a real first listing: register a farmer, upload actual crop photos, save and preview the crop, submit it, then sign in as admin to review and approve it. Public verification is separate: record actual verification evidence through the admin account action before a badge is displayed.
+For a real first listing: register a farmer, upload actual crop photos, save and preview the crop, publish it directly to the marketplace. Public verification is separate: record actual verification evidence through the admin account action before a badge is displayed.
 
 ## Routes and components
 

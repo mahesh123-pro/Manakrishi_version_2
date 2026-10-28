@@ -97,6 +97,32 @@ async function checkout(user, l, quantity = 1, key = randomUUID(), extra = {}) {
     ...extra,
   });
 }
+test("seller publishing, editing and resuming are public without approval; drafts stay private", async () => {
+  const created = await m.saveListing(farmer, { ...input, action: "publish" });
+  assert.equal(created.status, "published");
+  const published = await m.getListing(created.id, farmer);
+  assert.ok(
+    (await m.discover(new URLSearchParams({ seller: farmer.id }))).items.some(
+      (l) => l.id === created.id,
+    ),
+  );
+  await m.saveListing(farmer, { ...published, price: 28, action: "publish" });
+  assert.equal((await m.getListing(created.id)).price, 28);
+  await m.changeListing(farmer, created.id, "pause");
+  await assert.rejects(() => m.getListing(created.id), /not_found/);
+  await m.changeListing(farmer, created.id, "resume");
+  assert.equal((await m.getListing(created.id)).status, "published");
+  await run(
+    "UPDATE listings SET quantity=0,status='paused' WHERE id=?",
+    created.id,
+  );
+  await assert.rejects(
+    () => m.changeListing(farmer, created.id, "resume"),
+    /invalid_quantity/,
+  );
+  const draft = await m.saveListing(farmer, { ...input, action: "draft" });
+  await assert.rejects(() => m.getListing(draft.id), /not_found/);
+});
 test("authentication, password verification, role escalation and persistent throttles", async () => {
   await assert.rejects(
     async () =>

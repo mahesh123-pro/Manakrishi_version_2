@@ -374,7 +374,7 @@ export async function saveListing(user: User, input: Record<string, unknown>) {
         milli(data.minimum),
         milli(data.maximum),
         JSON.stringify(data),
-        publish ? "pending" : "draft",
+        publish ? "published" : "draft",
         now(),
         id,
       );
@@ -390,14 +390,14 @@ export async function saveListing(user: User, input: Record<string, unknown>) {
         milli(data.quantity),
         milli(data.minimum),
         milli(data.maximum),
-        publish ? "pending" : "draft",
+        publish ? "published" : "draft",
         JSON.stringify(data),
         now(),
         now(),
       );
     }
-    await audit(user, publish ? "listing.submitted" : "listing.draft", id);
-    return { id, status: publish ? "pending" : "draft" };
+    await audit(user, publish ? "listing.published" : "listing.draft", id);
+    return { id, status: publish ? "published" : "draft" };
   });
 }
 export async function changeListing(user: User, id: string, action: string) {
@@ -406,7 +406,7 @@ export async function changeListing(user: User, id: string, action: string) {
     requireValue(listing.sellerId === user.id, "forbidden", 403);
     const transitions: Record<string, string> = {
       pause: "paused",
-      resume: "pending",
+      resume: "published",
       unavailable: "unavailable",
       delete: "deleted",
     };
@@ -414,9 +414,27 @@ export async function changeListing(user: User, id: string, action: string) {
       transitions[action] &&
         (action !== "pause" || listing.status === "published") &&
         (action !== "resume" ||
-          ["paused", "unavailable", "rejected"].includes(listing.status)),
+          [
+            "paused",
+            "unavailable",
+            "rejected",
+            "pending",
+            "corrections",
+          ].includes(listing.status)),
       "invalid_transition",
     );
+    if (action === "resume") {
+      requireValue(
+        user.role === "farmer" && !user.suspended,
+        "farmer_required",
+        403,
+      );
+      await validateListing(
+        listing as unknown as Record<string, unknown>,
+        user,
+        true,
+      );
+    }
     if (action === "delete")
       requireValue(
         !(await one(

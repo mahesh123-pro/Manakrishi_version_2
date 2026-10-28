@@ -117,8 +117,8 @@ function MyListingsInner() {
         <PageHeading
           title={c("Your harvest, your workspace", "మీ పంట, మీ కార్యస్థలం")}
           body={c(
-            "Manage current stock and review status. Every change to a live listing goes back for approval.",
-            "స్టాక్, సమీక్ష స్థితి నిర్వహించండి. లైవ్ లిస్టింగ్ మార్పులు మళ్లీ ఆమోదానికి వెళ్తాయి.",
+            "Manage your stock and availability. Publish new crops and updates directly to the marketplace.",
+            "స్టాక్ మరియు లభ్యతను నిర్వహించండి. కొత్త పంటలు, మార్పులను నేరుగా మార్కెట్‌లో ప్రచురించండి.",
           )}
         />
         <Link href="/marketplace/sell" className="mk-btn">
@@ -198,12 +198,18 @@ function MyListingsInner() {
                     {c("Pause", "నిలిపివేయి")}
                   </button>
                 )}
-                {["paused", "unavailable", "rejected"].includes(l.status) && (
+                {[
+                  "paused",
+                  "unavailable",
+                  "rejected",
+                  "pending",
+                  "corrections",
+                ].includes(l.status) && (
                   <button
                     className="mk-secondary"
                     onClick={() => action(l.id, "resume")}
                   >
-                    {c("Resubmit for review", "మళ్లీ సమీక్షకు పంపు")}
+                    {c("Publish now", "ఇప్పుడే ప్రచురించు")}
                   </button>
                 )}
                 <button

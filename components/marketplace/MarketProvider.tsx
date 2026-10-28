@@ -98,8 +98,8 @@ const ERRORS: Record<string, [string, string]> = {
   ],
   empty_cart: ["Your cart is empty.", "మీ కార్ట్ ఖాళీగా ఉంది."],
   organic_evidence: [
-    "Describe your organic certification or growing practices. Admin review is required.",
-    "సేంద్రియ ధృవీకరణ లేదా సాగు పద్ధతులు వివరించండి. అడ్మిన్ సమీక్ష అవసరం.",
+    "Describe your organic certification or growing practices.",
+    "సేంద్రియ ధృవీకరణ లేదా సాగు పద్ధతులు వివరించండి.",
   ],
   not_found: ["This crop is no longer available.", "ఈ పంట అందుబాటులో లేదు."],
   invalid_transition: [
