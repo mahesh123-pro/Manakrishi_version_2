@@ -32,6 +32,9 @@ their account page, preserving account IDs, listings and orders. Numbers are nev
 public profile contact. New mobile users start as buyers and can enable selling from their account.
 Private login numbers remain hidden from public farmer profiles and the FPO directory.
 
+The targeted `jwks-rsa → jose@5` npm override keeps Firebase Admin Auth compatible with Vercel's
+CommonJS function loader. The regression suite checks loading with `--no-experimental-require-module`.
+
 1. Use Node 24 and `npm install`.
 2. Keep existing booking environment settings in `.env.local`.
 3. Development: `npm run dev`; open `/marketplace`.

@@ -21,6 +21,13 @@ after(async () => {
   await closeDb();
   rmSync(folder, { recursive: true, force: true });
 });
+test("Firebase Admin auth loads in serverless CommonJS without require(esm)", async () => {
+  await promisify(execFile)(process.execPath, [
+    "--no-experimental-require-module",
+    "-e",
+    "const {getAuth}=require('firebase-admin/auth'); if(typeof getAuth!=='function') process.exit(1)",
+  ]);
+});
 async function assertReject(fn, error) {
   await assert.rejects(fn, error);
 }
