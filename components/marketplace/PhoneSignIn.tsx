@@ -5,6 +5,12 @@ import { useMarket } from "./MarketProvider";
 
 function message(error: unknown) {
   const code = (error as { code?: string }).code || "";
+  if (code === "auth/configuration-not-found")
+    return "Mobile login is not configured in Firebase yet. Contact Manakrishi support, or use your existing email account below. (auth/configuration-not-found)";
+  if (code === "auth/invalid-phone-number")
+    return "Enter a valid 10-digit Indian mobile number without +91.";
+  if (code === "auth/network-request-failed")
+    return "Could not reach phone verification. Check your connection and allow Google reCAPTCHA, then try again.";
   if (
     [
       "auth/invalid-verification-code",
@@ -28,7 +34,7 @@ function message(error: unknown) {
     return "Phone verification is not available yet. Please contact support or use your existing email account.";
   return error instanceof Error && !code
     ? error.message
-    : "Could not verify your mobile number. Please try again.";
+    : `Could not verify your mobile number. Please try again.${/^auth\/[a-z-]+$/.test(code) ? ` (${code})` : ""}`;
 }
 
 export function PhoneSignIn({ link = false }: { link?: boolean }) {
