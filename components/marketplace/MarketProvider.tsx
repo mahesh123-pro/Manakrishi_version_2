@@ -23,6 +23,18 @@ import type { User } from "@/lib/marketplace/types";
 import { ComparisonProvider } from "./Comparison";
 
 const ERRORS: Record<string, [string, string]> = {
+  invalid_otp: [
+    "Phone verification expired or failed. Request a new OTP.",
+    "ఫోన్ ధృవీకరణ విఫలమైంది. కొత్త OTP కోరండి.",
+  ],
+  phone_auth_unconfigured: [
+    "Mobile sign-in is not configured yet. Contact support or use your existing email account.",
+    "మొబైల్ సైన్ ఇన్ ఇంకా సిద్ధం కాలేదు. సహాయం పొందండి.",
+  ],
+  phone_already_linked: [
+    "This number is already linked to an account. Sign out and use mobile login, or contact support.",
+    "ఈ నంబర్ ఇప్పటికే ఖాతాకు అనుసంధానించబడింది. సహాయం పొందండి.",
+  ],
   sign_in: ["Please sign in to continue.", "కొనసాగించడానికి సైన్ ఇన్ చేయండి."],
   server_error: [
     "Marketplace storage is unavailable. Please retry or contact support.",

@@ -9,7 +9,7 @@ try {
   await client.query("SELECT pg_advisory_xact_lock(74719301)");
   await client.query(POSTGRES_SCHEMA);
   await client.query("COMMIT");
-  console.log("Marketplace Postgres schema is ready (migration 1).");
+  console.log("Marketplace Postgres schema is ready (migrations 1–2).");
 } catch (error) {
   await client.query("ROLLBACK");
   throw error;

@@ -14,6 +14,24 @@ This is a purchase-request marketplace. Checkout reserves inventory and asks eac
 
 ## Run locally
 
+### Mobile OTP sign-in
+
+The default account form requests a name and Indian mobile number. Firebase Phone Authentication sends
+and verifies SMS codes with reCAPTCHA. The server verifies a recent Firebase phone ID token before
+issuing the existing HttpOnly marketplace session. Phone identities map to existing marketplace user
+IDs; phone registration never grants admin, FPO or seller verification privileges.
+
+Enable Phone in Firebase Authentication for `manakrishi-booking`, allow India in SMS region settings,
+and authorize `www.manakrishi.in` and `manakrishi.in`. Firebase SMS requires an eligible billing plan and
+quota. Keep the existing `NEXT_PUBLIC_FB_*` configuration and server-only
+`FIREBASE_SERVICE_ACCOUNT_JSON`; its service account must have Firebase Authentication user read access
+for revocation/disabled-user checks. Run the additive marketplace migration before deploying.
+
+Existing email users sign in once through the expandable legacy sign-in and link a verified number on
+their account page, preserving account IDs, listings and orders. Numbers are never matched by name or
+public profile contact. New mobile users start as buyers and can enable selling from their account.
+Private login numbers remain hidden from public farmer profiles and the FPO directory.
+
 1. Use Node 24 and `npm install`.
 2. Keep existing booking environment settings in `.env.local`.
 3. Development: `npm run dev`; open `/marketplace`.

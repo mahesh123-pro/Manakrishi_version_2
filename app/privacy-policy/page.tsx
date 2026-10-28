@@ -56,6 +56,11 @@ export default function PrivacyPage() {
           members chose to share publicly. FPO access does not include passwords, private order details,
           or account-management controls.
         </p>
+        <p>
+          Mobile sign-in uses your name and verified phone number. Google/Firebase sends a verification
+          SMS and processes the number for authentication and abuse prevention. Your sign-in phone
+          number is private unless you separately choose to publish it as a business contact.
+        </p>
       </LegalSection>
 
       <LegalSection heading="Your choices">

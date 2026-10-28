@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useMarket, PageHeading } from "./MarketProvider";
+import { PhoneSignIn } from "./PhoneSignIn";
 import type { User } from "@/lib/marketplace/types";
 
 export function Account() {
@@ -44,7 +45,7 @@ export function Account() {
           <div className="mk-panel mb-5">
             <p className="font-semibold">{user.name}</p>
             <p className="mt-2 text-sm text-muted">
-              {user.email} ·{" "}
+              {user.phone || user.email} ·{" "}
               {c(
                 user.role === "farmer"
                   ? "Farmer"
@@ -76,121 +77,160 @@ export function Account() {
               )}
             </div>
           </div>
+          {!user.phone && <PhoneSignIn link />}
+          {user.role === "buyer" && (
+            <button
+              className="mk-btn my-5"
+              onClick={async () => {
+                try {
+                  await api("become-seller", {});
+                  await refresh();
+                } catch (e) {
+                  notice((e as Error).message);
+                }
+              }}
+            >
+              {c(
+                "Sell my harvest — enable seller account",
+                "నా పంట అమ్మాలి — విక్రేత ఖాతా ప్రారంభించు",
+              )}
+            </button>
+          )}
           {user.role === "farmer" && <Profile user={user} />}
         </>
       ) : (
-        <form onSubmit={submit} className="mk-panel">
-          <div className="mb-6 flex gap-3">
-            <button
-              type="button"
-              className={mode === "login" ? "mk-btn" : "mk-secondary"}
-              onClick={() => setMode("login")}
-            >
-              {c("Sign in", "సైన్ ఇన్")}
-            </button>
-            <button
-              type="button"
-              className={mode === "register" ? "mk-btn" : "mk-secondary"}
-              onClick={() => setMode("register")}
-            >
-              {c("Create account", "ఖాతా సృష్టించు")}
-            </button>
-          </div>
-          <fieldset disabled={busy} className="space-y-5">
-            {mode === "register" && (
-              <>
+        <>
+          <PhoneSignIn />
+          <details className="mt-5">
+            <summary className="cursor-pointer text-sm text-green">
+              {c(
+                "Existing email account / administrator sign in",
+                "ఇప్పటికే ఉన్న ఇమెయిల్ ఖాతా / అడ్మిన్ సైన్ ఇన్",
+              )}
+            </summary>
+            <p className="my-3 text-xs text-muted">
+              {c(
+                "Sign in once with your existing account, then link your mobile number to keep your listings and orders.",
+                "మీ పాత ఖాతాతో ఒకసారి సైన్ ఇన్ చేసి మొబైల్ నంబర్‌ను అనుసంధానించండి.",
+              )}
+            </p>
+            <form onSubmit={submit} className="mk-panel">
+              <div className="mb-6 flex gap-3">
+                <button
+                  type="button"
+                  className={mode === "login" ? "mk-btn" : "mk-secondary"}
+                  onClick={() => setMode("login")}
+                >
+                  {c("Sign in", "సైన్ ఇన్")}
+                </button>
+                <button
+                  type="button"
+                  className={mode === "register" ? "mk-btn" : "mk-secondary"}
+                  onClick={() => setMode("register")}
+                >
+                  {c("Create account", "ఖాతా సృష్టించు")}
+                </button>
+              </div>
+              <fieldset disabled={busy} className="space-y-5">
+                {mode === "register" && (
+                  <>
+                    <label className="mk-label">
+                      {c("Your full name", "మీ పూర్తి పేరు")}
+                      <input
+                        name="name"
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        autoComplete="name"
+                        className="mk-input"
+                      />
+                    </label>
+                    <label className="mk-label">
+                      {c("I want to…", "నేను…")}
+                      <select name="role" className="mk-input">
+                        <option value="buyer">
+                          {c("Buy farm produce", "వ్యవసాయ ఉత్పత్తులు కొనాలి")}
+                        </option>
+                        <option value="farmer">
+                          {c("Sell my harvest", "నా పంట అమ్మాలి")}
+                        </option>
+                      </select>
+                    </label>
+                  </>
+                )}
                 <label className="mk-label">
-                  {c("Your full name", "మీ పూర్తి పేరు")}
+                  {c("Email address", "ఇమెయిల్ చిరునామా")}
                   <input
-                    name="name"
+                    type="email"
+                    name="email"
+                    autoComplete="email"
                     required
-                    minLength={2}
-                    maxLength={100}
-                    autoComplete="name"
+                    maxLength={254}
                     className="mk-input"
                   />
                 </label>
                 <label className="mk-label">
-                  {c("I want to…", "నేను…")}
-                  <select name="role" className="mk-input">
-                    <option value="buyer">
-                      {c("Buy farm produce", "వ్యవసాయ ఉత్పత్తులు కొనాలి")}
-                    </option>
-                    <option value="farmer">
-                      {c("Sell my harvest", "నా పంట అమ్మాలి")}
-                    </option>
-                  </select>
-                </label>
-              </>
-            )}
-            <label className="mk-label">
-              {c("Email address", "ఇమెయిల్ చిరునామా")}
-              <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                required
-                maxLength={254}
-                className="mk-input"
-              />
-            </label>
-            <label className="mk-label">
-              {c("Password", "పాస్‌వర్డ్")}
-              <input
-                type="password"
-                name="password"
-                autoComplete={
-                  mode === "register" ? "new-password" : "current-password"
-                }
-                required
-                minLength={mode === "register" ? 12 : 1}
-                maxLength={128}
-                className="mk-input"
-              />
-              {mode === "register" && (
-                <span className="mt-2 block text-[11px] font-normal text-muted">
-                  {c(
-                    "At least 12 characters. Use a unique password.",
-                    "కనీసం 12 అక్షరాలు. ప్రత్యేక పాస్‌వర్డ్ వాడండి.",
+                  {c("Password", "పాస్‌వర్డ్")}
+                  <input
+                    type="password"
+                    name="password"
+                    autoComplete={
+                      mode === "register" ? "new-password" : "current-password"
+                    }
+                    required
+                    minLength={mode === "register" ? 12 : 1}
+                    maxLength={128}
+                    className="mk-input"
+                  />
+                  {mode === "register" && (
+                    <span className="mt-2 block text-[11px] font-normal text-muted">
+                      {c(
+                        "At least 12 characters. Use a unique password.",
+                        "కనీసం 12 అక్షరాలు. ప్రత్యేక పాస్‌వర్డ్ వాడండి.",
+                      )}
+                    </span>
                   )}
-                </span>
-              )}
-            </label>
-            {error && (
-              <p role="alert" className="mk-error">
-                {error}
+                </label>
+                {error && (
+                  <p role="alert" className="mk-error">
+                    {error}
+                  </p>
+                )}
+                <button className="mk-btn w-full" disabled={busy}>
+                  {busy
+                    ? c("Please wait…", "వేచి ఉండండి…")
+                    : mode === "register"
+                      ? c("Create my account", "నా ఖాతా సృష్టించు")
+                      : c("Sign in", "సైన్ ఇన్")}
+                </button>
+              </fieldset>
+              <p className="mt-5 text-xs leading-6 text-muted">
+                {c(
+                  "Publish crop listings directly from your farmer account. A verified seller badge requires a separate administrator check.",
+                  "రైతు ఖాతా నుండి పంటలను నేరుగా ప్రచురించండి. ధృవీకరించిన విక్రేత బ్యాడ్జ్ కోసం అడ్మిన్ తనిఖీ అవసరం.",
+                )}{" "}
+                <Link href="/privacy-policy" className="underline">
+                  {c("Privacy policy", "గోప్యతా విధానం")}
+                </Link>
               </p>
-            )}
-            <button className="mk-btn w-full" disabled={busy}>
-              {busy
-                ? c("Please wait…", "వేచి ఉండండి…")
-                : mode === "register"
-                  ? c("Create my account", "నా ఖాతా సృష్టించు")
-                  : c("Sign in", "సైన్ ఇన్")}
-            </button>
-          </fieldset>
-          <p className="mt-5 text-xs leading-6 text-muted">
-            {c(
-              "Publish crop listings directly from your farmer account. A verified seller badge requires a separate administrator check.",
-              "రైతు ఖాతా నుండి పంటలను నేరుగా ప్రచురించండి. ధృవీకరించిన విక్రేత బ్యాడ్జ్ కోసం అడ్మిన్ తనిఖీ అవసరం.",
-            )}{" "}
-            <Link href="/privacy-policy" className="underline">
-              {c("Privacy policy", "గోప్యతా విధానం")}
-            </Link>
-          </p>
-          <p className="mt-3 text-xs text-muted">
-            {c("Need account help?", "ఖాతా సహాయం కావాలా?")}{" "}
-            <Link href="/support" className="underline">
-              {c("Contact support", "సహాయం పొందండి")}
-            </Link>
-          </p>
-          <p className="mt-3 text-xs text-muted">
-            {c("FPO member?", "FPO సభ్యులా?")}{" "}
-            <Link href="/fpo" className="underline">
-              {c("Sign in to the FPO desk", "FPO డెస్క్‌లోకి సైన్ ఇన్ చేయండి")}
-            </Link>
-          </p>
-        </form>
+              <p className="mt-3 text-xs text-muted">
+                {c("Need account help?", "ఖాతా సహాయం కావాలా?")}{" "}
+                <Link href="/support" className="underline">
+                  {c("Contact support", "సహాయం పొందండి")}
+                </Link>
+              </p>
+              <p className="mt-3 text-xs text-muted">
+                {c("FPO member?", "FPO సభ్యులా?")}{" "}
+                <Link href="/fpo" className="underline">
+                  {c(
+                    "Sign in to the FPO desk",
+                    "FPO డెస్క్‌లోకి సైన్ ఇన్ చేయండి",
+                  )}
+                </Link>
+              </p>
+            </form>
+          </details>
+        </>
       )}
     </div>
   );

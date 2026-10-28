@@ -888,7 +888,7 @@ export async function adminOverview(user: User) {
       )
     ).map((r) => listingFrom(r, true)),
     users: await all(
-      "SELECT u.id,u.name,u.email,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.createdAt,CASE WHEN f.userId IS NOT NULL THEN 1 ELSE 0 END AS fpo FROM users u LEFT JOIN fpo_access f ON f.userId=u.id ORDER BY u.createdAt DESC",
+      "SELECT u.id,u.name,CASE WHEN u.email LIKE '%@phone.manakrishi.invalid' THEN '' ELSE u.email END AS email,p.phone,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.createdAt,CASE WHEN f.userId IS NOT NULL THEN 1 ELSE 0 END AS fpo FROM users u LEFT JOIN fpo_access f ON f.userId=u.id LEFT JOIN phone_identities p ON p.userId=u.id ORDER BY u.createdAt DESC",
     ),
     reports: await all(
       "SELECT r.*,l.crop,u.name reporter FROM reports r JOIN listings l ON l.id=r.listingId JOIN users u ON u.id=r.userId ORDER BY r.createdAt DESC",
@@ -925,7 +925,7 @@ export async function fpoOverview(user: User) {
   requireValue(user.role === "fpo", "forbidden", 403);
   return {
     members: await all(
-      "SELECT u.id,u.name,u.email,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.publicContact,u.createdAt FROM users u WHERE u.role IN ('farmer','buyer') AND u.suspended=0 AND NOT EXISTS(SELECT 1 FROM fpo_access f WHERE f.userId=u.id) ORDER BY u.role,u.name",
+      "SELECT u.id,u.name,CASE WHEN u.email LIKE '%@phone.manakrishi.invalid' THEN '' ELSE u.email END AS email,u.role,u.verified,u.suspended,u.village,u.district,u.state,u.publicContact,u.createdAt FROM users u WHERE u.role IN ('farmer','buyer') AND u.suspended=0 AND NOT EXISTS(SELECT 1 FROM fpo_access f WHERE f.userId=u.id) ORDER BY u.role,u.name",
     ),
     crops: await all(
       "SELECT l.id,l.crop,l.category,l.status,l.quantity,l.unit,l.price,l.createdAt,u.id sellerId,u.name seller,u.village,u.district,u.state FROM listings l JOIN users u ON u.id=l.sellerId WHERE l.status='published' AND u.suspended=0 ORDER BY l.createdAt DESC LIMIT 200",

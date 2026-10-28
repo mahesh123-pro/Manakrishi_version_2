@@ -239,7 +239,7 @@ function Workspace() {
             : filter === "fpo"
               ? Boolean(u.fpo)
               : u.role === filter)) &&
-      matches(u.name, u.email, u.id),
+      matches(u.name, u.email, u.phone, u.id),
   );
   const orders = data.orders.filter(
     (o) =>
@@ -671,7 +671,7 @@ function Workspace() {
                       <div>
                         <h2>{u.name}</h2>
                         <p className="mt-1 break-all text-sm text-muted">
-                          {u.email}
+                          {u.phone || u.email}
                         </p>
                         <p className="mt-2 text-xs text-muted">
                           {u.role} ·{" "}

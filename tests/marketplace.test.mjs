@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomInt } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 if (process.env.DATABASE_URL && process.env.MARKETPLACE_TEST_DATABASE !== "1")
@@ -13,9 +13,10 @@ if (process.env.DATABASE_URL && process.env.MARKETPLACE_TEST_DATABASE !== "1")
 const folder = mkdtempSync(join(tmpdir(), "manakrishi-market-test-"));
 process.env.MARKETPLACE_DATA_DIR = folder;
 const { one, run, closeDb } = await import("../lib/marketplace/db.ts");
-const { register, sessionUser, login, limit } =
+const { register, sessionUser, login, limit, newSession } =
   await import("../lib/marketplace/auth.ts");
 const m = await import("../lib/marketplace/service.ts");
+const { connectPhone } = await import("../lib/marketplace/phone-auth.ts");
 after(async () => {
   await closeDb();
   rmSync(folder, { recursive: true, force: true });
@@ -73,6 +74,66 @@ const input = {
   latitude: 17.1,
   longitude: 78.1,
 };
+test("verified phone identities preserve accounts, enforce unique ownership and reject suspended users", async () => {
+  const firstUid = randomUUID(), secondUid = randomUUID();
+  const basePhone = randomInt(9000000000, 9999999900);
+  const phone = (offset = 0) => `+91${basePhone + offset}`;
+  const id = await connectPhone(
+    firstUid,
+    phone(),
+    "Phone farmer",
+  );
+  const created = await one("SELECT id,name,role FROM users WHERE id=?", id);
+  assert.equal(created.role, "buyer");
+  const phoneSession = await sessionUser(await newSession(id));
+  assert.equal(phoneSession.phone, phone());
+  assert.equal(phoneSession.email, "");
+  assert.equal(
+    await connectPhone(firstUid, phone(), "Different name"),
+    id,
+  );
+  assert.equal(
+    (await one("SELECT name FROM users WHERE id=?", id)).name,
+    "Phone farmer",
+  );
+  const existing = await makeUser("farmer");
+  assert.equal(
+    await connectPhone(
+      secondUid,
+      phone(1),
+      "",
+      existing,
+      true,
+    ),
+    existing.id,
+  );
+  assert.equal(
+    (await one("SELECT role FROM users WHERE id=?", existing.id)).role,
+    "farmer",
+  );
+  await assert.rejects(
+    () =>
+      connectPhone(firstUid, phone(), "", existing, true),
+    /phone_already_linked/,
+  );
+  await assert.rejects(
+    () => connectPhone("other-identity", phone(), "Other account"),
+    /invalid_login/,
+  );
+  await assert.rejects(
+    () => connectPhone(secondUid, phone(2), "Other account"),
+    /phone_already_linked/,
+  );
+  await assert.rejects(
+    () => connectPhone("no-session", phone(3), "", null, true),
+    /sign_in/,
+  );
+  await run("UPDATE users SET suspended=1 WHERE id=?", id);
+  await assert.rejects(
+    () => connectPhone(firstUid, phone(), "Phone farmer"),
+    /invalid_login/,
+  );
+});
 async function listing(patch = {}) {
   const { id } = await m.saveListing(farmer, {
     ...input,

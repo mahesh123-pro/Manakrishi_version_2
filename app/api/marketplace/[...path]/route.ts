@@ -11,6 +11,7 @@ import {
   tokenHash,
   limit,
 } from "@/lib/marketplace/auth";
+import { phoneLogin } from "@/lib/marketplace/phone-auth";
 import * as service from "@/lib/marketplace/service";
 import type { User } from "@/lib/marketplace/types";
 export const runtime = "nodejs";
@@ -176,12 +177,19 @@ export async function POST(
       await limit("auth:global", 120, 60);
       const input = JSON.parse((await boundedBody(request, 16384)).toString());
       await limit(
-        `auth:${String(input.email).toLowerCase().slice(0, 254)}`,
+        `auth:${path[1] === "phone" ? `phone:${tokenHash(String(input.idToken || ""))}` : String(input.email).toLowerCase().slice(0, 254)}`,
         10,
         900,
       );
       const token =
-        path[1] === "register" ? await register(input) : await login(input);
+        path[1] === "phone"
+          ? await phoneLogin(
+              input,
+              await sessionUser(request.cookies.get(COOKIE)?.value),
+            )
+          : path[1] === "register"
+            ? await register(input)
+            : await login(input);
       const response = json({ user: await sessionUser(token) });
       response.cookies.set(COOKIE, token, {
         httpOnly: true,
@@ -292,6 +300,15 @@ export async function POST(
         service.text(input.status),
         service.text(input.reason ?? "", 500),
       );
+      return json({ ok: true });
+    }
+    if (path[0] === "become-seller") {
+      requireValue(user.role === "buyer", "forbidden", 403);
+      await run(
+        "UPDATE users SET role='farmer' WHERE id=? AND role='buyer'",
+        user.id,
+      );
+      await service.audit(user, "account.seller-enabled", user.id);
       return json({ ok: true });
     }
     if (path[0] === "profile") {

@@ -16,6 +16,7 @@ let queue = Promise.resolve();
 const camelColumns = Object.fromEntries(
   [
     "userId",
+    "firebaseUid",
     "sellerId",
     "buyerId",
     "ownerId",

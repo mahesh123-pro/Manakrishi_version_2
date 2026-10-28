@@ -323,7 +323,9 @@ function MemberDesk() {
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-4 break-all text-sm">{member.email}</p>
+                <p className="mt-4 break-all text-sm">
+                  {member.email || c("Mobile account", "మొబైల్ ఖాతా")}
+                </p>
                 <p className="mt-2 text-sm text-muted">
                   {[member.village, member.district, member.state]
                     .filter(Boolean)
